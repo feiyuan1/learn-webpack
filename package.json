@@ -2,8 +2,6 @@
   "name": "learn-webpack",
   "version": "1.0.0",
   "description": "learn webapck bundle.",
-  // "main": "index.js",
-  // 防止意外发布代码？指的是发包？
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -21,5 +19,8 @@
   "devDependencies": {
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
   }
 }
