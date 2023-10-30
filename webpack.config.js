@@ -5,7 +5,15 @@ module.exports = {
   entry: "./src/index.js", // 入口文件路径
   output: {
     // 打包后的文件地址（我猜 dist/main 这个路径也是 webpack 的默认值）
-    filename: "main.js",
+    filename: "bundle.js",
     path: path.resolve(__dirname, "dist"),
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/i, // 处理 css 文件，先安装依赖，再配置
+        use: ["style-loader", "css-loader"], // 逆序执行
+      },
+    ],
   },
 }
