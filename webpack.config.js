@@ -2,11 +2,11 @@ const path = require("path")
 
 // 这里有个细节：平常使用的模块语法（引入、导出）是 es6 语法；这里用到的是 CommonJS
 module.exports = {
-  entry: "./src/index.js", // 入口文件路径
+  entry: { index: "./src/index.js", print: "./src/print.js" }, // 入口文件路径
   // 分包是指有多个 output？
   output: {
     // 打包后的文件地址（我猜 dist/main 这个路径也是 webpack 的默认值）
-    filename: "bundle.js",
+    filename: "[name].bundle.js", // 动态生成 bundle 名称
     path: path.resolve(__dirname, "dist"),
   },
   // module: {
