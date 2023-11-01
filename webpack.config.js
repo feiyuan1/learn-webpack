@@ -12,6 +12,8 @@ module.exports = {
     // 打包后的文件地址（我猜 dist/main 这个路径也是 webpack 的默认值）
     filename: "[name].bundle.js", // 动态生成 bundle 名称
     path: path.resolve(__dirname, "dist"),
+    // 清楚 output 目录无用的文件
+    clear: true,
   },
   plugins: [new HtmlWebpackPlugin({ title: "管理输出" })],
   // module: {
