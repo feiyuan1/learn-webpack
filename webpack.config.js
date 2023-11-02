@@ -16,6 +16,11 @@ module.exports = {
     // 清除 output 目录无用的文件
     clean: true,
   },
+  optimization: {
+    splitChunks: {
+      chunks: "all",
+    },
+  },
   plugins: [new HtmlWebpackPlugin({ title: "管理输出" })],
   // module: {
   //   rules: [
