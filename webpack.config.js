@@ -7,7 +7,12 @@ const HtmlWebpackPlugin = require("html-webpack-plugin")
 // 这里有个细节：平常使用的模块语法（引入、导出）是 es6 语法；这里用到的是 CommonJS
 module.exports = {
   mode: "development",
-  entry: { index: "./src/index.js", print: "./src/print.js" }, // 入口文件路径
+  // 如何使用多个导入的单入口？
+  entry: {
+    index: { import: "./src/index.js", dependOn: "shared" }, // 依赖去重
+    print: { import: "./src/print.js", dependOn: "shared" },
+    shared: "lodash",
+  }, // 入口文件路径
   // 准确来说是「代码分离」：将代码分离到不同的 bundle 中
   output: {
     // 打包后的文件地址（我猜 dist/main 这个路径也是 webpack 的默认值）
@@ -15,6 +20,9 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
     // 清除 output 目录无用的文件
     clean: true,
+  },
+  optimization: {
+    runtimeChunk: "single",
   },
   plugins: [new HtmlWebpackPlugin({ title: "管理输出" })],
   // module: {

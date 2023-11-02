@@ -17,3 +17,9 @@ private: true
   - 应该怎么避免更新呢？
 - manifest 普通开发者可以看到么？是什么结构呢？
   - WebpackManifestPlugin 插件可以提取 manifest 数据为一个 json 文件
+
+# entry
+
+### Qs
+
+- 如何使用多个导入的单入口？
