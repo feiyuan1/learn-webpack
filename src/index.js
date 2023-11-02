@@ -1,22 +1,13 @@
-import { join } from "lodash"
 // 怎么省略后缀名来着？
-import print from "./print"
+// import print from "./print"
 // import iconUrl from "./icon.png"
 // 样式定义打包后被放在了 style 标签中
 // import "./style.css"
 
-function createButton() {
-  const button = document.createElement("button")
-  button.innerHTML = "click me and check the console"
-  button.onclick = print
-  return button
-}
-
-function component() {
+function asyncGetComponent() {
   const element = document.createElement("div")
-  const button = createButton()
   // lodash（目前通过一个 script 脚本引入）对于执行这一行是必需的
-  element.innerHTML = join(["Hello", "webpack"], " ")
+  element.innerHTML = "init-content-in-div"
   // 插入图片
   // const icon = new Image()
   // icon.src = iconUrl
@@ -24,8 +15,16 @@ function component() {
   // icon.width = 100
   // element.appendChild(icon)
   // element.classList.add("red")
-  element.appendChild(button)
-  return element
+  return import("lodash")
+    .then(({ default: _ }) => {
+      element.innerHTML = _.join(["Hello", "webpack"], " ")
+      return element
+    })
+    .catch((error) =>
+      console.error("an error occurred while loading the component")
+    )
 }
 
-document.body.appendChild(component())
+asyncGetComponent().then((element) => {
+  document.body.appendChild(element)
+})

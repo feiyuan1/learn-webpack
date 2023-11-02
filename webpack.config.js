@@ -9,9 +9,7 @@ module.exports = {
   mode: "development",
   // 如何使用多个导入的单入口？
   entry: {
-    index: { import: "./src/index.js", dependOn: "shared" }, // 依赖去重
-    print: { import: "./src/print.js", dependOn: "shared" },
-    shared: "lodash",
+    index: "./src/index.js",
   }, // 入口文件路径
   // 准确来说是「代码分离」：将代码分离到不同的 bundle 中
   output: {
@@ -20,9 +18,6 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
     // 清除 output 目录无用的文件
     clean: true,
-  },
-  optimization: {
-    runtimeChunk: "single",
   },
   plugins: [new HtmlWebpackPlugin({ title: "管理输出" })],
   // module: {
