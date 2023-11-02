@@ -6,14 +6,15 @@ const HtmlWebpackPlugin = require("html-webpack-plugin")
 
 // 这里有个细节：平常使用的模块语法（引入、导出）是 es6 语法；这里用到的是 CommonJS
 module.exports = {
+  mode: "development",
   entry: { index: "./src/index.js", print: "./src/print.js" }, // 入口文件路径
-  // 分包是指有多个 output？
+  // 准确来说是「代码分离」：将代码分离到不同的 bundle 中
   output: {
     // 打包后的文件地址（我猜 dist/main 这个路径也是 webpack 的默认值）
     filename: "[name].bundle.js", // 动态生成 bundle 名称
     path: path.resolve(__dirname, "dist"),
-    // 清楚 output 目录无用的文件
-    clear: true,
+    // 清除 output 目录无用的文件
+    clean: true,
   },
   plugins: [new HtmlWebpackPlugin({ title: "管理输出" })],
   // module: {
