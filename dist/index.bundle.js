@@ -37,7 +37,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var loda
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ print)\n/* harmony export */ });\n/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ \"./node_modules/lodash/lodash.js\");\n/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);\n\n\nconsole.log(lodash__WEBPACK_IMPORTED_MODULE_0___default().join([\"Another\", \"module\", \"loaded!\"], \" \"))\n\nfunction print() {\n  console.log(\"I get called from print.js\")\n}\n\n\n//# sourceURL=webpack://learn-webpack/./src/print.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ print)\n/* harmony export */ });\n/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ \"./node_modules/lodash/lodash.js\");\n/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);\n// 重复引用同一个依赖 lodash\n\n\nconsole.log(lodash__WEBPACK_IMPORTED_MODULE_0___default().join([\"Another\", \"module\", \"loaded!\"], \" \"))\n\nfunction print() {\n  console.log(\"I get called from print.js\")\n}\n\n\n//# sourceURL=webpack://learn-webpack/./src/print.js?");
 
 /***/ })
 
