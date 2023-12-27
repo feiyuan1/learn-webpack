@@ -7,7 +7,7 @@ private: true
 
 # manifest
 
-管理模块间的交互
+管理模块间的交互.
 
 ### Qs
 
