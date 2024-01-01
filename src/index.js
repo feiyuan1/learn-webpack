@@ -1,3 +1,4 @@
+// import createLoginButton from "./Login"
 // 怎么省略后缀名来着？
 // import print from "./print"
 // import iconUrl from "./icon.png"
@@ -28,3 +29,10 @@ function asyncGetComponent() {
 asyncGetComponent().then((element) => {
   document.body.appendChild(element)
 })
+
+const createLoginButton = () => {
+  import(/* webpackPrefetch: true */ './Login').then(({ default: createLoginButton }) => {
+    createLoginButton()
+  })
+}
+createLoginButton()
