@@ -20,6 +20,20 @@ module.exports = {
     // 清除 output 目录无用的文件
     clean: true,
   },
+  optimization: {
+    // 将 webpack 运行时代码提出为一个包
+    runtimeChunk: 'single',
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+          // 将 node_modules 中的依赖提出为一个包
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendor',
+          chunks: 'all'
+        }
+      }
+    }
+  },
   plugins: [new HtmlWebpackPlugin({ title: "管理输出" })],
   // module: {
   //   rules: [
