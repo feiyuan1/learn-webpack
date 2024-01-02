@@ -37,3 +37,6 @@ private: true
 
 ### Qs
 - 为什么入口文件添加 预加载/预获取提示无效？
+
+# bundle name
+output 中如果以contenthashid 作为包名的话，测试下发现：在不修改文件内容，并重新构建后，contenthash 没有变化（当前 webpack 版本为 5.89.0）

@@ -14,7 +14,8 @@ module.exports = {
   // 准确来说是「代码分离」：将代码分离到不同的 bundle 中
   output: {
     // 打包后的文件地址（我猜 dist/main 这个路径也是 webpack 的默认值）
-    filename: "[name].bundle.js", // 动态生成 bundle 名称
+    // 我应该可以指定 name 的生成规则？？
+    filename: "[name].[contenthash].js", // 动态生成 bundle 名称
     path: path.resolve(__dirname, "dist"),
     // 清除 output 目录无用的文件
     clean: true,
