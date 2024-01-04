@@ -37,6 +37,7 @@ private: true
 
 ### Qs
 - 为什么入口文件添加 预加载/预获取提示无效？
+- webpack 新版本是否已经修复，或者是否有修复方案？
 
 # bundle name
 - output 中如果以contenthashid 作为包名的话，测试下发现：在不修改文件内容，并重新构建后，contenthash 没有变化（当前 webpack 版本为 5.89.0）
@@ -45,3 +46,43 @@ private: true
 
 ### Qs
 - 为什么有的 webpack 版本下，引导模板会导致不修改文件内容 contenhash 也会更新的情况呢？
+
+# webpack 环境变量
+webpack 环境变量仅 webpack.config.js 生效
+
+### 存在的目的
+消除 webpack.config.js 文件中生产环境与开发环境的差异
+
+### 内置环境变量
+
+- WEBPACK_SERVE(终端执行 npx webpack serve 命令，值为 true)
+- WEBPACK_BUILD(终端执行 npx webpack build 命令，值为 true)
+- WEBPACK_WATCH(终端执行 npx webapck --watch，值为 true)
+  
+### 自定义环境变量
+> 没有为变量赋值时，默认值为 true
+```
+npx webpack --env ${name}=${value} // name=value
+
+npx webpack --env ${name} // name=true
+```
+
+### node-env（node 环境变量）
+通过 --node-env 来设置 process.env.NODE_ENV
+```
+npx webpack --node-env production // process.env.NODE_ENV='production'
+```
+- tips
+  - 仅在 webpack config 上下文中生效；在 client 端访问时，值依旧为 development（符合预期，需要通过 webpack 的配置项来设置该变量）
+
+# process.env.NODE_ENV
+
+webpack 中更改该值有几种办法：
+- 设置 webpack config 上下文的值
+  - 命令行中添加 --node-env 选项
+- 设置 client 代码上下文的值
+  - 1. webpack config optimization.nodeEnv
+  - 2. webpack config mode，但会被 1. 覆盖
+
+# mode
+尝试后发现，命令行中添加 --node-env 并不会影响 mode 的值，与文档所说的不符？

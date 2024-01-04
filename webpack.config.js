@@ -3,10 +3,16 @@ const path = require("path")
 // 1. 动态生成 index.html（感觉主要是动态引入生成的 bundle？）
 // 2. 替换 output 目录中已存在的 index.html
 const HtmlWebpackPlugin = require("html-webpack-plugin")
+const webpack = require("webpack")
 
 // 这里有个细节：平常使用的模块语法（引入、导出）是 es6 语法；这里用到的是 CommonJS
-module.exports = {
-  mode: "development",
+module.exports = (env, argv) => {
+  env && console.log('webpack env: ', env)
+  console.log('node-env: ', process.env.NODE_ENV)
+  console.log('argv.mode: ', argv.mode)
+
+  return {
+  mode: "production",
   // 如何使用多个导入的单入口？
   entry: {
     index: "./src/index.js",
@@ -21,6 +27,8 @@ module.exports = {
     clean: true,
   },
   optimization: {
+    // 设置 client 代码上下文中的 NODE_ENV 的值
+    // nodeEnv: process.env.NODE_ENV,
     // 将 webpack 运行时代码提出为一个包
     runtimeChunk: 'single',
     splitChunks: {
@@ -34,7 +42,12 @@ module.exports = {
       }
     }
   },
-  plugins: [new HtmlWebpackPlugin({ title: "管理输出" })],
+  plugins: [
+    new HtmlWebpackPlugin({ title: "管理输出" }), 
+    // 设置 client 代码上下文中的 NODE_ENV 的值
+    // '1+1' 被当作代码片段来使用
+    new webpack.DefinePlugin({  TWO: '1+1', TEST: JSON.stringify(process.env.NODE_ENV)})
+  ],
   // module: {
   //   rules: [
   //     {
@@ -47,4 +60,4 @@ module.exports = {
   //     },
   //   ],
   // },
-}
+}}

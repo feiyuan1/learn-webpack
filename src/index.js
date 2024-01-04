@@ -30,9 +30,11 @@ asyncGetComponent().then((element) => {
   document.body.appendChild(element)
 })
 
-const createLoginButton = () => {
-  import(/* webpackPrefetch: true */ './Login').then(({ default: createLoginButton }) => {
-    createLoginButton()
-  })
-}
-createLoginButton()
+console.log('client-node-env-NODE_ENV:', process.env.NODE_ENV, 'TWO: ', TWO, "TEST: ", TEST)
+
+// const createLoginButton = () => {
+//   import(/* webpackPrefetch: true */ './Login').then(({ default: createLoginButton }) => {
+//     createLoginButton()
+//   })
+// }
+// createLoginButton()
