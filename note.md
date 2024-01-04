@@ -84,5 +84,9 @@ webpack 中更改该值有几种办法：
   - 1. webpack config optimization.nodeEnv
   - 2. webpack config mode，但会被 1. 覆盖
 
+# 全局变量
+- 上面提到的 node 环境变量
+- webpack.DefinePlugin 插件中自定义的变量
+
 # mode
 尝试后发现，命令行中添加 --node-env 并不会影响 mode 的值，与文档所说的不符？
