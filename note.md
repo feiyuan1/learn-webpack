@@ -90,3 +90,13 @@ webpack 中更改该值有几种办法：
 
 # mode
 尝试后发现，命令行中添加 --node-env 并不会影响 mode 的值，与文档所说的不符？
+
+# source map
+webpack.config.js 中通过 devtool 选项配置 sourceMap 风格，开发环境下默认值是 eval
+
+- 在源文件与打包后的文件末尾都添加加了若干行注释
+  - sourceURL
+  - sourceMappingURL
+- 不同的 source map 风格打包生成的辅助文件也不同
+  - 比如，devtool: source-map 会生成 .js .js.map 两个文件；devtool: eval-cheap-module-source-map 只会生成 .js 文件
+- 有些风格，比如 hidden-source-map 适用于生产环境，生成 source map，但不会在打包后的文件末尾添加注释映射到源文件，避免被普通用户看到源码，这种可以将生成的 source map 文件提供给错误报告工具辅助排查线上问题，比如 sentry

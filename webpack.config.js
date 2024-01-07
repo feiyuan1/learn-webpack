@@ -12,11 +12,13 @@ module.exports = (env, argv) => {
   console.log('argv.mode: ', argv.mode)
 
   return {
-  mode: "production",
+  mode: "development",
   // 如何使用多个导入的单入口？
   entry: {
     index: "./src/index.js",
   }, // 入口文件路径
+  devtool: 'eval-cheap-module-source-map',
+  // devtool: 'eval',
   // 准确来说是「代码分离」：将代码分离到不同的 bundle 中
   output: {
     // 打包后的文件地址（我猜 dist/main 这个路径也是 webpack 的默认值）
