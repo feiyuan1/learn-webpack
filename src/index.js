@@ -4,6 +4,7 @@
 // import iconUrl from "./icon.png"
 // 样式定义打包后被放在了 style 标签中
 // import "./style.css"
+// import './requireContext'
 
 function asyncGetComponent() {
   const element = document.createElement("div")
