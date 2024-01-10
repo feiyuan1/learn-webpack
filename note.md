@@ -5,13 +5,36 @@ private: true
 
 > 安装一个被用于生产环境的依赖时，使用 --save，安装仅本地使用的依赖时，使用 --save-dev
 
+# bundle、chunk、module、chunk 组
+
+### 目录结构
+为了方便说明，假定当前的目录结构为：
+- src
+  - index.js
+  - Login.js
+  - LoginMoudle.js
+- dist
+  - index.e3421dfdaf2.js
+### module
+在开发中，引入的组件、工具方法等均可以视为 module
+
+### chunk（块）
+打包后生成的文件为 chunk，比如 dist 目录下的 index.xxxx.js 文件为 initial chunk
+
+### chunk 组
+包含一个或多个 chunk，按照当前生成的 dist 来说，只生成了 chunk 组（名字叫 main，入口起点的默认名称），并且只包含一个 chunk
+
+ps：splitChunksPlugin 会将一个 chunk 切分为多个 chunk，并合并成一个 chunk 组
+
+### bundle（包）
+
 # manifest
 
 管理模块间的交互.
 
 ### Qs
 
-- 动态生成的 bundle 名称，如何在 index.html 内引用的呢？
+- 动态生成的 bundle（还是 chunk？） 名称，如何在 index.html 内引用的呢？-manifest 文件中会存储源文件与 chunk 之间的映射
 - 当使用 content-hash 作为 bundle 文件的名称时：
   - 为何有些内容没有被修改，但是生成的 bundle 文件名称依旧被更新了？
   - 应该怎么避免更新呢？
@@ -100,3 +123,11 @@ webpack.config.js 中通过 devtool 选项配置 sourceMap 风格，开发环境
 - 不同的 source map 风格打包生成的辅助文件也不同
   - 比如，devtool: source-map 会生成 .js .js.map 两个文件；devtool: eval-cheap-module-source-map 只会生成 .js 文件
 - 有些风格，比如 hidden-source-map 适用于生产环境，生成 source map，但不会在打包后的文件末尾添加注释映射到源文件，避免被普通用户看到源码，这种可以将生成的 source map 文件提供给错误报告工具辅助排查线上问题，比如 sentry
+
+# 模块热更新
+
+- webpack-dev-server 较新版本默认支持热更新
+
+### Qs
+
+- 存储在内存中，在没有手动生成 manifest.json 文件时，从哪里可以看到 webpack 存储的映射？？ 

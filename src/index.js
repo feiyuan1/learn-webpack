@@ -5,6 +5,7 @@
 // 样式定义打包后被放在了 style 标签中
 // import "./style.css"
 // import './requireContext'
+import DemoWithCss from "./demoWithCss"
 
 function asyncGetComponent() {
   const element = document.createElement("div")
@@ -39,3 +40,6 @@ console.log('client-node-env-NODE_ENV:', process.env.NODE_ENV, 'TWO: ', TWO, "TE
 //   })
 // }
 // createLoginButton()
+
+// 尝试样式表的热替换
+DemoWithCss()

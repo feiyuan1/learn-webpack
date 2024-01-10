@@ -50,16 +50,16 @@ module.exports = (env, argv) => {
     // '1+1' 被当作代码片段来使用
     new webpack.DefinePlugin({  TWO: '1+1', TEST: JSON.stringify(process.env.NODE_ENV)})
   ],
-  // module: {
-  //   rules: [
-  //     {
-  //       test: /\.css$/i, // 处理 css 文件，先安装依赖，再配置
-  //       use: ["style-loader", "css-loader"], // 逆序执行
-  //     },
-  //     {
-  //       test: /\.(png|svg|jpg|jpeg|gif)$/i, // 处理 css 文件，先安装依赖，再配置
-  //       type: "asset/resource",
-  //     },
-  //   ],
-  // },
+  module: {
+    rules: [
+      {
+        test: /\.css$/i, // 处理 css 文件，先安装依赖，再配置
+        use: ["style-loader", "css-loader"], // 逆序执行
+      },
+      // {
+      //   test: /\.(png|svg|jpg|jpeg|gif)$/i, // 处理 css 文件，先安装依赖，再配置
+      //   type: "asset/resource",
+      // },
+    ],
+  },
 }}
