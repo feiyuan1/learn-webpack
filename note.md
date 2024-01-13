@@ -124,10 +124,118 @@ webpack.config.js 中通过 devtool 选项配置 sourceMap 风格，开发环境
   - 比如，devtool: source-map 会生成 .js .js.map 两个文件；devtool: eval-cheap-module-source-map 只会生成 .js 文件
 - 有些风格，比如 hidden-source-map 适用于生产环境，生成 source map，但不会在打包后的文件末尾添加注释映射到源文件，避免被普通用户看到源码，这种可以将生成的 source map 文件提供给错误报告工具辅助排查线上问题，比如 sentry
 
-# 模块热更新
+# 模块热替换
+webpack.HotModuleReplacementPlugin 将接口暴露在 module.hot 以及 import.meta.webpackHot 中
 
 - webpack-dev-server 较新版本默认支持热更新
+  - 本质利用的是插件：webpack.HotModuleReplacementPlugin
+  - 所以是怎么实现的，这个插件应该只提供了 API？
+- 手动操作模块热替换：
+  - 使用 module.hot API 监听需要支持热替换的文件，当文件发生变化时，会触发 API 提供的回调，在回调中手动更新，比如删掉原来元素，重新执行更新后的文件内容，生成新的元素，并添加到文档中
+- 各个框架也都有对应的工具
+  - react-hot-loader（ps: 在 RN 中，新版本推荐使用 react fast refresh）
+  - Angular HMR
+  - Vue-loader
+  - ...
 
 ### Qs
 
 - 存储在内存中，在没有手动生成 manifest.json 文件时，从哪里可以看到 webpack 存储的映射？？ 
+- module 是 webpack 提供的吗？难道也是 node 提供的?
+  - 已知：webpack.config.js 中使用 cjs 语法 module.exports 导出了 webpack 配置
+    - 那么，整个 module 是 node 提供的？
+
+# tree shaking
+刪除 js 上下文中未引用的代码
+
+webpack 默认支持的 cjs 语法，从 4 开始正式支持 es2015(即 es6，因为 ECMAScript 标准第 6 版正式版本是在 2015 年发布的)模块语法，也叫 harmony modules（中文翻译为 语法糖模块）
+
+ps：es5 中实现模块化的方式：立即执行函数 + 闭包
+
+tree shaking 有两个方面：针对整个文件、子目录 & 针对文件内容
+
+### sideEffects
+在 package.json 文件中设置 sideEffects: true 可以删除未引用的文件、子目录
+
+ps: 可以设置为数组，item 为文件、子目录的路径，将其标记为“有副作用”
+ps: 由于 css 文件不会有直接使用的导出，所以默认情况下会将 css 文件删除
+
+### 文件内容 tree shaking
+要使 tree shaking 生效有几个步骤：
+
+step1：webpack 配置中增加选项 usedExports
+
+将文件中未直接使用的导出 & 导出的实现 标记出来，比如：unused harmony export cube；
+
+该选项默认依赖的是 terser
+
+step2：添加 #__PURE__ 注释
+
+并不是所有文件中的内容都可以被 terser 明智的分析出来是否可以被删掉，所以需要手动添加注释，表明这块代码在没有用时是不会产生副作用的，可以被删掉；
+
+通过 optimization.innerGraph: true 启用该功能
+
+使用场景：函数调用（比如 react HOC）、变量的初始值、...
+
+step3: 使用压缩工具移除 dead-code
+
+涉及到两项配置：
+- webpack.config.optimization.minimize: true
+- webpack.config.optimization.minimizer 为数组，指定压缩的工具
+  - 在生产环境下，默认的压缩工具为 TerserPlugin（minimize 默认也是开启的）；开发环境未开启
+  - webpack 官网还提供了 ClosureWebpackPlugin
+  - 或者指定其他的压缩工具：需要提供移除 dead-code 的能力 
+
+压缩工具可以生效的前提是：文件内容使用的 es6 模块语法没有被编译为其他的语法
+> 比如 @babel/preset-env 会默认将 es6 转为 cjs？
+
+一般压缩工具的工作包括：
+- 变量、方法名称的简化、压缩
+- 移除 dead-code
+- 去除文件的空格、换行等空字符
+
+step4：合并模块
+> 默认生产环境是开启的，开发环境未开启
+
+在未开启该功能的情况下，可以在 chunk 中看到，在 chunk 中包含了多个模块，并且每个都会添加模块原名称作为注释，方便分割；在开启后，chunk 中移除了子模块的分割&信息标注，真正的融合为了一个模块
+
+涉及到的配置（二选其一即可）
+- webpack.config.optimization.concatenateModules: true
+- 添加插件 webpack.optimize.ModuleConcatenationPlugin
+
+### tree shaking 的过程
+
+step1：判断该文件是否被标记为有副作用，是：则直接导入它，否则进入 step2
+step2：判断该文件的导出是否有直接的使用，是：则导入它，否则进入 step3
+step3：判断该文件重新导出的导出是否有直接的使用，是：则跳过它，否则排除它
+> step1~3 依赖 sideEffects 的设置
+
+step4：针对已经导入的文件，进行文件内容副作用分析评估
+> step4 依赖 usedExported & #__PURE__ 注释
+
+step5：针对已经导入&跳过的文件，进行依赖分析
+
+### Qs
+- 依赖分析是会做什么呢？总不能纯分析吧？
+- 使用了 webpack+babel+node 的前端项目，打包后的文件都使用的什么模块化语法呢？
+- 官网中提到可以在 build 时添加选项 --optimize-minimize 来启用 TerserPlugin，但尝试后，发现会报错：不是可用的选项
+- 在压缩时遇到一个问题：
+  - 问题描述：开发环境下，按照上述步骤配置完毕后，发现代码并没有完全被压缩，而且 dead-code 没有被移除
+  - 线索：devtool: false （之前是 eval）后，问题解决
+  - 继续排查，发现将 devtool 设置为任何 eval 相关的风格都会导致同样的问题 & chunk 中的内容与映射的转换后的代码内容相同
+    - ps: 内容相同，但结构不同，区别主要在：一个 chunk 文件包含所有引用的模块（每个模块都有模块名作为注释）；而转换后的代码中，每个模块单独放在了一个文件中
+  - 原因猜测：是否由于 eval 风格的 sourcemap 没有保留源码&生成 .map 文件，又需要满足开发者查看源码的需求，所以必须保证转换后的代码是完整的，而 chunk 内容和转换后的代码内容是同源（同一个引用），导致了该问题？？
+
+# TODO
+- 更新配置后，打包生成的文件并没有更新或者是没有重新打包？
+  - 需要删掉 dist 目录，重新打包后，文件才被更新
+
+
+# webpack 的竞争者们
+
+## Bun
+到目前为止，github star 数量高于 webpack，说明大家还挺支持的，使用率呢？
+
+- 不支持 windows
+- 支持运行时？但是 webpack 不支持么？为啥要用它？
+- 不支持 Vue、Angular 

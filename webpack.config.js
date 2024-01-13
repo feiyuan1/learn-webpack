@@ -4,6 +4,11 @@ const path = require("path")
 // 2. 替换 output 目录中已存在的 index.html
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const webpack = require("webpack")
+const TerserPlugin = require("terser-webpack-plugin");
+
+// 先这样临时删除 dist 目录
+const rimraf = require('rimraf');
+rimraf('./dist', ()=>{})
 
 // 这里有个细节：平常使用的模块语法（引入、导出）是 es6 语法；这里用到的是 CommonJS
 module.exports = (env, argv) => {
@@ -13,12 +18,15 @@ module.exports = (env, argv) => {
 
   return {
   mode: "development",
+  // mode: "production",
   // 如何使用多个导入的单入口？
   entry: {
     index: "./src/index.js",
   }, // 入口文件路径
-  devtool: 'eval-cheap-module-source-map',
+  // devtool: 'eval-cheap-module-source-map',
   // devtool: 'eval',
+  // devtool: 'source-map',
+  devtool: false,
   // 准确来说是「代码分离」：将代码分离到不同的 bundle 中
   output: {
     // 打包后的文件地址（我猜 dist/main 这个路径也是 webpack 的默认值）
@@ -42,13 +50,31 @@ module.exports = (env, argv) => {
           chunks: 'all'
         }
       }
-    }
+    },
+    usedExports: true,
+    minimize: true,
+    concatenateModules: false,
+    minimizer: [
+      // 注意：下面使用到的文件路径均为打包后的 chunk 文件路径
+      new TerserPlugin({ 
+        // Terser 使用说明：https://github.com/terser/terser
+        terserOptions: {
+          // compress: false, // 是否处理压缩（似乎该配置也可以删掉 dead-code）
+          // mangle: false // 是否更换变量、方法名称
+          // toplevel: false // 是否删除 dead-code&更换变量名称
+        },
+        // extractComments: true, // 剥离符合要求的注释到新的文件中
+        // exclude: /index/, // 排除掉不需要压缩处理的 chunk
+        // test: /index.*\.js(\?.*)?$/i, // 指定需要进行压缩的 chunk
+      })
+],
   },
   plugins: [
     new HtmlWebpackPlugin({ title: "管理输出" }), 
     // 设置 client 代码上下文中的 NODE_ENV 的值
     // '1+1' 被当作代码片段来使用
-    new webpack.DefinePlugin({  TWO: '1+1', TEST: JSON.stringify(process.env.NODE_ENV)})
+    new webpack.DefinePlugin({  TWO: '1+1', TEST: JSON.stringify(process.env.NODE_ENV)}),
+    // new webpack.optimize.ModuleConcatenationPlugin()
   ],
   module: {
     rules: [

@@ -6,6 +6,7 @@
 // import "./style.css"
 // import './requireContext'
 import DemoWithCss from "./demoWithCss"
+import { square } from "./DemoForTreeShaking"
 
 function asyncGetComponent() {
   const element = document.createElement("div")
@@ -43,3 +44,6 @@ console.log('client-node-env-NODE_ENV:', process.env.NODE_ENV, 'TWO: ', TWO, "TE
 
 // 尝试样式表的热替换
 DemoWithCss()
+
+// 测试 TreeShaking
+console.log('square: ', square(2))
