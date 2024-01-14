@@ -112,7 +112,18 @@ webpack 中更改该值有几种办法：
 - webpack.DefinePlugin 插件中自定义的变量
 
 # mode
-尝试后发现，命令行中添加 --node-env 并不会影响 mode 的值，与文档所说的不符？
+webpack 打包使用的默认优化方案&代码运行环境（开发、生产、其他），默认为生产
+
+2 种显示指定途径：
+- 配置文件中，指定配置项 mode
+- cli 指定选项 --mode
+  - 可以在配置文件中以函数的形式将配置导出，该函数可以接受 cli 指定的 mode 选项值
+- ps: 前者优先级更高
+
+1 中间接影响 mode 值的途径：
+- 命令行中添加 --node-env 且没有显示指定 mode，mode 会取自 --node-env 选项的值
+  - ps: 如果以函数形式导出配置项，那么函数中接收到的 mode 值仍为空
+
 
 # source map
 webpack.config.js 中通过 devtool 选项配置 sourceMap 风格，开发环境下默认值是 eval
@@ -229,6 +240,7 @@ step5：针对已经导入&跳过的文件，进行依赖分析
 # TODO
 - 更新配置后，打包生成的文件并没有更新或者是没有重新打包？
   - 需要删掉 dist 目录，重新打包后，文件才被更新
+- webpack-dev-middleware 尝试
 
 
 # webpack 的竞争者们
