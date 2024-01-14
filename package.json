@@ -5,8 +5,8 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --env app.platform='' --node-env production",
-    "start": "webpack serve"
+    "build": "webpack --env app.platform='' --mode=production",
+    "start": "webpack serve --node-env development"
   },
   "repository": {
     "type": "git",
@@ -27,7 +27,8 @@
     "terser-webpack-plugin": "^5.3.10",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1"
+    "webpack-dev-server": "^4.15.1",
+    "webpack-merge": "^5.10.0"
   },
   "sideEffects": [
     "*.css"
