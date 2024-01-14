@@ -3,7 +3,7 @@ const {merge} = require("webpack-merge")
 const common = require("./webpack.common.js")
 
 module.exports = merge(common, {
-  // devtool: 'source-map',
+  devtool: 'source-map',
   plugins: [
     new HtmlWebpackPlugin({ title: "webpack 学习" }), 
   ]

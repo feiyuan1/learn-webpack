@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --env app.platform='' --mode=production",
-    "start": "webpack serve --node-env development"
+    "build:dev": "webpack --mode=development",
+    "start:prod": "webpack serve --mode=production",
+    "start": "webpack serve --mode development"
   },
   "repository": {
     "type": "git",
@@ -21,6 +23,7 @@
   "devDependencies": {
     "@webpack-cli/serve": "^2.0.5",
     "css-loader": "^6.8.1",
+    "css-minimizer-webpack-plugin": "^5.0.1",
     "html-webpack-plugin": "^5.5.3",
     "style-loader": "^3.3.3",
     "terser": "^5.26.0",
