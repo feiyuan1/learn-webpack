@@ -1,4 +1,4 @@
-import { compileStyleObject } from "./utils"
+import { compileStyleObject } from "../../utils"
 
 export default function LoginModal(){
   const div = document.createElement('div')
