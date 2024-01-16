@@ -1,12 +1,16 @@
 const path = require("path")
 const webpack = require("webpack")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const {NODE_ENV} = require("./env.js")
 
 // 先这样临时删除 dist 目录
 const rimraf = require('rimraf');
 rimraf('./dist', ()=>{})
 
 // 这里有个细节：平常使用的模块语法（引入、导出）是 es6 语法；这里用到的是 CommonJS
-module.exports = {
+module.exports = (mode) => {
+  const devMode = mode === NODE_ENV.DEV
+  return {
   // 如何使用多个导入的单入口？
   entry: {
     index: "./src/index.js",
@@ -40,17 +44,25 @@ module.exports = {
     // 设置 client 代码上下文中的 NODE_ENV 的值
     // '1+1' 被当作代码片段来使用
     new webpack.DefinePlugin({  TWO: '1+1', TEST: JSON.stringify(process.env.NODE_ENV)}),
+    new MiniCssExtractPlugin({
+      filename: devMode ? "[name].css" : "[name].[contenthash].css",
+      chunkFilename: devMode ? "[id].css" : "[id].[contenthash].css",
+    }),
   ],
   module: {
     rules: [
       {
         test: /\.css$/i, // 处理 css 文件，先安装依赖，再配置
-        use: ["style-loader", "css-loader"], // 逆序执行
+        use: [{
+          loader: MiniCssExtractPlugin.loader, // 将 css 抽离到文件中，通过 link 标签将文件引入 html 中
+          options: {},
+        }, "css-loader"], // 逆序执行
+        // use: ["style-loader", "css-loader"], // 将 css 内容以 style 标签的形式插入 DOM
       },
       // {
-      //   test: /\.(png|svg|jpg|jpeg|gif)$/i, // 处理 css 文件，先安装依赖，再配置
+      //   test: /\.(png|svg|jpg|jpeg|gif)$/i, // 处理图片，先安装依赖，再配置
       //   type: "asset/resource",
       // },
     ],
   },
-}
+}}

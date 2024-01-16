@@ -5,9 +5,10 @@ const HtmlWebpackPlugin = require("html-webpack-plugin")
 const TerserPlugin = require("terser-webpack-plugin");
 const { merge } = require("webpack-merge")
 const common = require("./webpack.common.js")
+const {NODE_ENV} = require("./env.js")
 
 
-module.exports = merge(common, {
+module.exports = merge(common(NODE_ENV.DEV), {
   // devtool: 'eval-cheap-module-source-map',
   // devtool: 'eval',
   // devtool: 'inline-source-map',

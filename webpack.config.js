@@ -1,9 +1,6 @@
 const webpackProd = require("./webpack.prod.js")
 const webpackDev = require("./webpack.dev.js")
-const NODE_ENV = {
-  PROD: 'production',
-  DEV: 'development'
-}
+const {NODE_ENV} = require("./env.js")
 
 // 分割不同环境下的配置项
 module.exports = (env, argv) => {
