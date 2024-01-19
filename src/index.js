@@ -5,8 +5,9 @@
 // 样式定义打包后被放在了 style 标签中
 // import "./style.css"
 // import './requireContext'
-import DemoWithCss from "./demoWithCss"
-import { square } from "./DemoForTreeShaking"
+import DemoWithCss from "./components/demoWithCss"
+import { square } from "./components/DemoForTreeShaking"
+// import {consoleReact} from "./NormalImport"
 
 function asyncGetComponent() {
   const element = document.createElement("div")
@@ -19,7 +20,7 @@ function asyncGetComponent() {
   // icon.width = 100
   // element.appendChild(icon)
   // element.classList.add("red")
-  return import("lodash")
+  return import(/* webpackChunkName: "lodash-vendor" */"lodash")
     .then(({ default: _ }) => {
       element.innerHTML = _.join(["Hello", "webpack"], " ")
       return element
@@ -36,7 +37,7 @@ asyncGetComponent().then((element) => {
 console.log('client-node-env-NODE_ENV:', process.env.NODE_ENV, 'TWO: ', TWO, "TEST: ", TEST)
 
 // const createLoginButton = () => {
-//   import(/* webpackPrefetch: true */ './Login').then(({ default: createLoginButton }) => {
+//   import(/* webpackPrefetch: true */ './components/Login/Login').then(({ default: createLoginButton }) => {
 //     createLoginButton()
 //   })
 // }
@@ -47,3 +48,6 @@ DemoWithCss()
 
 // 测试 TreeShaking
 console.log('square: ', square(2))
+
+// 测试常规引入第三方工具
+// consoleReact()

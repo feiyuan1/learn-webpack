@@ -7,7 +7,7 @@ private: true
 
 # bundle、chunk、module、chunk 组
 
-### 目录结构
+## 目录结构
 为了方便说明，假定当前的目录结构为：
 - src
   - index.js
@@ -15,26 +15,42 @@ private: true
   - LoginMoudle.js
 - dist
   - index.e3421dfdaf2.js
-### module
+## module
 在开发中，引入的组件、工具方法等均可以视为 module
 
-### chunk（块）
+## chunk（块）
 打包后生成的文件为 chunk，比如 dist 目录下的 index.xxxx.js 文件为 initial chunk
 
-### chunk 组
+### 如何确认 chunk 中包含哪些模块
+> ps: 在代码未被压缩时，可以在文件中看到以各个模块的名称为标记的注释
+
+- 入口起点中定义的所有导入（详见 entry-多个导入）
+- 入口起点中定义的所有导入的依赖中符合以下条件的模块
+  - 非动态引入
+  - 非 optimization.runtimeChunk 生成的模块
+  - 非 optimization.cacheGroup 生成的模块
+
+## chunk 组
 包含一个或多个 chunk，按照当前生成的 dist 来说，只生成了 chunk 组（名字叫 main，入口起点的默认名称），并且只包含一个 chunk
 
 ps：splitChunksPlugin 会将一个 chunk 切分为多个 chunk，并合并成一个 chunk 组
 
-### bundle（包）
+## bundle（包）
+可以包含多种资源，包括 css 文件、js 文件、媒体资源（图片、音频、视频、...）
+
+### main bundle
+默认情况下，将入口起点打包生成 main.js, 这是 main bundle
 
 # manifest
-
 管理模块间的交互.
 
-### Qs
+## Qs
 
-- 动态生成的 bundle（还是 chunk？） 名称，如何在 index.html 内引用的呢？-manifest 文件中会存储源文件与 chunk 之间的映射
+- 动态生成的 bundle（还是 chunk？） 名称，如何在 index.html 内引用的呢？
+  - manifest 文件中会存储源文件与 chunk 之间的映射
+- 当存在多个入口文件时，比如 MPA 中，访问某条路径所对应的 html 页面，对应的入口起点打包生成的就是 main bundle？不确定
+  - 以及 webpack 有明确的 main bundle 的概念吗？
+- 如何确认哪些 chunk 分在了一个 bundle 中？或者说 bundle 的分割标准&生成途径？？
 - 当使用 content-hash 作为 bundle 文件的名称时：
   - 为何有些内容没有被修改，但是生成的 bundle 文件名称依旧被更新了？
   - 应该怎么避免更新呢？
@@ -42,47 +58,124 @@ ps：splitChunksPlugin 会将一个 chunk 切分为多个 chunk，并合并成�
   - WebpackManifestPlugin 插件可以提取 manifest 数据为一个 json 文件
 
 # entry
+入口起点是 webpack 用于查找开始构建的地方（打包的起点）
 
-### Qs
+## 对 chunk 命名的影响
+入口起点的定义形式决定了 chunk 的名称
+
+- 赋值为 string | string[]，chunk 名称为 main
+- 赋值为对象，每个起点对应的 chunk 名称为 key
+- 赋值为指定了 chunk 名称的对象
+
+## 使用多个导入
+一个入口起点可以定义多个导入, 生成的 chunk 有两种情况：
+```
+entry: ['index.js', 'test.js']
+```
+- index.js 引入了 test.js
+  - 导致最终生成的 chunk 文件中 webpack_exports 相关的逻辑会涉及到所有的导入，其他部分与不定义 test.js 没有区别
+  - ps: MultiEntryImportCut.png 是这部分区别的截图
+- 两个文件之间不存在引用关系
+  - 最终生成的 bundle 会包含所有的导入及其依赖
+
+## 新增 HTML
+通过 HtmlWebpackPlugin 新增一个 HTML 文件，默认情况下名为 index.js, 包含所有生成的入口 chunk
+```
+new HtmlWebpackPlugin({ title: "dev-webpack 学习" })
+```
+### 构建一个 MPA
+1. 新增 test 入口
+```
+entry: {
+  index: "./src/index.js",
+  test: "./src/test/testIndex.js",
+}
+```
+存在一个问题：只是新增了 test 入口起点，但是产出的 html 文件只有 index.html
+
+2. 新增 test.html
+```
+new HtmlWebpackPlugin({ title: "test of webpack 学习" , filename: 'test.html'}),
+```
+存在一个问题：由于生成的 2 个 html 文件都没有指定包含的 chunk，所以默认情况下，2 个会共享所有 chunk。也就是说，index.html 中包含 test chunk，test.html 中也包含 index.js
+
+3. 指定 html 包含的 chunk
+```
+new HtmlWebpackPlugin({ title: "dev-webpack 学习", chunks: ['index'] })
+new HtmlWebpackPlugin({ title: "test of webpack 学习" , filename: 'test.html', chunks: ['test]}),
+```
+现在 index.html 中只会包含 index.js
+
+## Qs
 
 - 如何使用多个导入的单入口？
+-  "由于生成的 2 个 html 文件都没有指定包含的 chunk，所以默认情况下，2 个会共享所有 chunk。也就是说，index.html 中包含 test chunk，test.html 中也包含 index.js" 这是符合默认行为预期的么？
+
+# 启用本地服务
+安装 webpack-dev-server，cli 中执行 npx webpack serve 即可
+
+> 一般提供的根路径为第一个入口起点生成的 html 页面
+
+## 访问本地服务的其他页面
+通过访问 localhost:port/webpack-dev-server 可以查看本地服务中所有的目录结构，访问对应文件路径即可
+```
+// 服务中的目录结构
+- index.html
+- test.html
+- index.js
+- test.js
+- index.css
+```
+那么可以通过 localhost:port/test.html 访问 test.html
 
 # 动态引入文件
+webpack 会将动态引入的模块单独生成一个 chunk，不与其他代码耦合在一起，可以通过魔法注释 webpackChunkName 指定 chunk 名称，webpack 也可以提供一个默认名称
 
-### 未添加提示
+> 动态引入的模块不属于入口 chunk
+
+## 多次引入同一模块
+只会生成一份 chunk，被多次加载而已，chunk.name 使用第一次的赋值（如果存在多次指定 chunk 名称的情况）
+
+## 未添加提示
 子模块在执行时进行加载
 
-### prefetch 预获取
+## prefetch 预获取
 父模块加载完毕后，加载子模块
 
-### preload 预加载
+## preload 预加载
 父模块与子模块并行加载
 
-### Qs
+## Qs
 - 为什么入口文件添加 预加载/预获取提示无效？
 - webpack 新版本是否已经修复，或者是否有修复方案？
 
-# bundle name
+# webpack 缓存
+为了更好的利用缓存，相关的一项配置：optimization.moduleIds（模块 id 的生成策略） 由 defaultvalue：natural 更新为了 defaultValue: deterministic
+
+> natural 是根据模块的加载顺序来生成 module.id，意味着，当非动态引入的模块出现增删引入的情况时，会影响模块生成的 contenthash
+> deterministic 和 hash 有关，具体怎么算的没明白...
+
+bundle name
 - output 中如果以contenthashid 作为包名的话，测试下发现：在不修改文件内容，并重新构建后，contenthash 没有变化（当前 webpack 版本为 5.89.0）
 - 当生成的包个数发生变化时，官网文档中表示：其他无关的包 contenthash 也会发生变化（由于解析包的顺序出现差异，导致包的module.id 更新），但是可能由于 webpack 版本不同，目前没有复现这种情况
 - 
 
-### Qs
+## Qs
 - 为什么有的 webpack 版本下，引导模板会导致不修改文件内容 contenhash 也会更新的情况呢？
 
 # webpack 环境变量
 webpack 环境变量仅 webpack.config.js 生效
 
-### 存在的目的
+## 存在的目的
 消除 webpack.config.js 文件中生产环境与开发环境的差异
 
-### 内置环境变量
+## 内置环境变量
 
 - WEBPACK_SERVE(终端执行 npx webpack serve 命令，值为 true)
 - WEBPACK_BUILD(终端执行 npx webpack build 命令，值为 true)
 - WEBPACK_WATCH(终端执行 npx webapck --watch，值为 true)
   
-### 自定义环境变量
+## 自定义环境变量
 > 没有为变量赋值时，默认值为 true
 ```
 npx webpack --env ${name}=${value} // name=value
@@ -90,7 +183,7 @@ npx webpack --env ${name}=${value} // name=value
 npx webpack --env ${name} // name=true
 ```
 
-### node-env（node 环境变量）
+## node-env（node 环境变量）
 通过 --node-env 来设置 process.env.NODE_ENV
 ```
 npx webpack --node-env production // process.env.NODE_ENV='production'
@@ -149,7 +242,7 @@ webpack.HotModuleReplacementPlugin 将接口暴露在 module.hot 以及 import.m
   - Vue-loader
   - ...
 
-### Qs
+## Qs
 
 - 存储在内存中，在没有手动生成 manifest.json 文件时，从哪里可以看到 webpack 存储的映射？？ 
 - module 是 webpack 提供的吗？难道也是 node 提供的?
@@ -165,13 +258,13 @@ ps：es5 中实现模块化的方式：立即执行函数 + 闭包
 
 tree shaking 有两个方面：针对整个文件、子目录 & 针对文件内容
 
-### sideEffects
+## sideEffects
 在 package.json 文件中设置 sideEffects: true 可以删除未引用的文件、子目录
 
 ps: 可以设置为数组，item 为文件、子目录的路径，将其标记为“有副作用”
 ps: 由于 css 文件不会有直接使用的导出，所以默认情况下会将 css 文件删除
 
-### 文件内容 tree shaking
+## 文件内容 tree shaking
 要使 tree shaking 生效有几个步骤：
 
 step1：webpack 配置中增加选项 usedExports
@@ -214,7 +307,7 @@ step4：合并模块
 - webpack.config.optimization.concatenateModules: true
 - 添加插件 webpack.optimize.ModuleConcatenationPlugin
 
-### tree shaking 的过程
+## tree shaking 的过程
 
 step1：判断该文件是否被标记为有副作用，是：则直接导入它，否则进入 step2
 step2：判断该文件的导出是否有直接的使用，是：则导入它，否则进入 step3
@@ -226,7 +319,7 @@ step4：针对已经导入的文件，进行文件内容副作用分析评估
 
 step5：针对已经导入&跳过的文件，进行依赖分析
 
-### Qs
+## Qs
 - 依赖分析是会做什么呢？总不能纯分析吧？
 - 使用了 webpack+babel+node 的前端项目，打包后的文件都使用的什么模块化语法呢？
 - 官网中提到可以在 build 时添加选项 --optimize-minimize 来启用 TerserPlugin，但尝试后，发现会报错：不是可用的选项
@@ -244,12 +337,136 @@ step5：针对已经导入&跳过的文件，进行依赖分析
 - 默认添加 DefinePlugin
 - source-map 默认值为 none
 
-### Qs
+## Qs
 - 添加的 DefinePlugin 都处理了哪些变量
   - 是根据使用框架的不同，处理的方式也有区别吗？
   - 要不然为什么会说“如果使用 React 会明显发现生产环境下打包后的体积减小”呢？是因为对于 React 项目来说，开发环境下默认是会有某些日志记录的吗？生产环境下给去掉了？？
   - 为什么生产环境下使用 source-map 对**测试**还有影响？？
   - 官网提到了 css 文件的压缩，但是默认情况下生产环境会将所有代码进行压缩（包括 css），为什么单独拿出来说？？
+
+# 代码分离
+将代码分离到不同的 chunk 中，最终目的是分离到不同的 bundle
+
+## 好处
+- 控制单个 bundle 体积
+- 控制资源加载的优先级
+
+## 分离出的 chunk 如何使用
+webpack 会自动根据文件间的依赖关系引用 chunk，譬如：存在一个名为 index 的入口起点，它定义的起点为 index.js，而 index.js 引用了 chunkA.js, 那么在访问 index.html 时，会加载 chunkA.js 文件的
+
+## 途径
+- 分割入口起点
+- 去重
+- 动态导入
+也就是说：分离出的 chunk 不一定会放在入口 chunk 中，也就是，最终产出的 chunk 数量 >= 入口起点数量
+
+## 分割入口起点
+每个入口起点一定会产出一个 chunk，而这个 chunk 可以不被使用
+
+### 分割标准
+什么情况下应该拆分出另一个起点呢？
+- MPA
+- 公共的组件、工具库、第三方库（webpack 不推荐）
+  - 这种应该通过第二种“去重”的方法提取？
+- 利用 bundle 分析工具提供建议
+
+> 在 MPA 中，每个 HTML 页面对应一条路由，也会对应一个入口起点产生的 chunk，如果各个入口起点产生的 chunk 互相不存在引用关系时，当访问页面 A 时，其他的入口起点产生的 chunk（B.js/C.js/...）是不会被加载的
+
+## 去重
+
+### 运行时代码
+可以通过 optimization.runtimeChunk 将运行时代码抽离，这样可以：
+- 减小入口 chunk 的体积，提高页面加载速度
+- 减小入口 chunk 的文件名变化
+  - webpack 存在一些运行时的代码（包括引导模板等...），这些代码每次在构建后，contenthash 都会更新，如果 chunk 命名规则中包含 contenthash，那么就会引起入口 chunk 的文件名更新，缓存失效，重新加载文件
+- 存在多个入口起点时，再次加载 runtimeChunk 所用时间是不是也会少？
+
+> runtime chunk 默认会引用在所有的 html 中
+
+### 第三方工具
+通过 optimization.cacheGroup 将某些重复引用的模块提取出来
+
+> 提取时可以指定提取哪些 chunk 中的模块
+> ps: 动态导入（没有指定名称）产生的 chunk.name 为 undefined
+
+> 这些模块的特点是更新频率低，单独抽离可以善用缓存
+
+1. node_modules 下的第三方包，将其拆分为一个 chunk
+```
+optimization: {
+  cacheGroup: {
+    'vendor': {
+      test: /[\\/]node_modules[\\/]/,
+      name: 'vendor',
+      chunks: 'all' // 将产生的所有 chunk 中包含的 node_modules 下的包抽离到 vendor chunk 中
+    }
+}}
+```
+存在一个问题：
+
+假设 A 页面用到了 moduleA，B 页面用到了 moduleB，C 页面用到了 moduleC
+
+在 A、B、C 三个页面中都会引入 vendor.js，对于 A 来说，引入了不必要的 moduleB&moduleC
+
+2. 以入口起点为单位抽离 node_modules 下的第三方包
+
+将起点 index 依赖的第三方包抽离到 index-vendor chunk 中，将起点 test 依赖的第三方包抽离到 test-vendor chunk 中
+```
+optimization: {
+  cacheGroup: {
+    'test-vendor': {
+      test: /[\\/]node_modules[\\/]/,
+      name: 'test-vendor',
+      chunks(chunk){
+        return chunk.name === 'test'
+      }
+    },
+    'index-vendor': {
+      test: /[\\/]node_modules[\\/]/,
+      name: 'index-vendor',
+      chunks(chunk){
+        return chunk.name === 'index'
+      }
+    },
+}}
+```
+### css 文件分离
+webpack 提供了 mini-css-extract-plugin 将 css 从主应用程序中分离
+
+#### mini-css-extract-plugin 与 css-loader 区别
+- 前者是将 css 抽离为 .css 文件，通过 link 标签将 css 文件引入 html 中；后者是利用 js 将 css 内容插入 style 标签中，插入 DOM
+- 前者更适用于生产环境，可以是 .css&.js 文件并行加载
+
+## 动态引入
+- 减小部分 bundle 体积
+- 减小带宽占用？？不必同时加载多个模块？
+- 控制资源加载的优先级
+
+## Qs
+- 动态导入和懒加载不同么？？
+- 公共组件、工具是以什么办法分离的？以及如何判断是否需要分离？
+  - 和 node_modules 一样的问题，全部分离，意味着每次都要加载一个非常大的文件
+  - 是否需要再切割？如何切割呢？
+  - 像是成型的工具库，比如 lodash，人家会提供子包 lodash/xxx，减小引入的包体积，这里可以参考么？
+  - 像 heifetz，分割成了很多的子应用，是否也是考虑到了包体积呢？
+- Chrome devtool 中的 network 面板下的 size 是带宽吗？还是流量？
+  - 使用 webpack-dev-server & 使用浏览器缓存后，发现 size 小于原本资源的大小
+  - 使用 build，加载资源时对应的 size 大小无论是否使用浏览器缓存，没有区别
+
+# Loader
+对代码的翻译
+
+## style-loader
+常见的是将 style-loader 与 css-loader 搭配使用，那么两者的作用分别是什么？
+
+## Qs
+- style-loader 将 css 插入 style 标签？还做了其他的吗？
+- css-loader 将 css 文件内容转为了什么？
+  - 因为它既可以将结果给 style-loader，又可以给 mini-css-extract-plugin，单独生成 css 文件
+- 那么如果只引入 css-loader，通过 css 文件形式定义的样式还能生效吗？又是以什么形式生效的呢？
+
+# plugin
+对功能的扩展
 
 # TODO
 - 更新配置后，打包生成的文件并没有更新或者是没有重新打包？
@@ -257,6 +474,29 @@ step5：针对已经导入&跳过的文件，进行依赖分析
 - webpack-dev-middleware 尝试
 - 如何单独将 css 文件打包为一个文件？？
 - 我在某次打包后的文件（chunk）中看到了 module.hot.accept(...)，可以具体看下 webpack-dev-server做了什么？
+- 自定义构建、启动或者其他命令下的引导模板？？
+- React code splitting 做了什么？有哪些好的建议和 react 相关的代码分离的注意事项
+- webpack server&client 同构？所以同构是哪里提出的概念？webpack 的同构又是有什么作用？
+- MPA 的路由是怎么配置的（本地/线上）
+  - 有两种路由：页面根路由，切换不同的入口；子路由，切换子页面
+    - 利用 location.history?
+  - 看到有一种实现是根据 hash 来的：监听 onhashchange
+  - 本地的话，需要借助 webpack 的能力吧，毕竟本地服务时通过 webpack-dev-server 启动的
+  - 主要是不清楚：如何将路由与文件相关联？
+```
+// 将 react 相关依赖提取到一个包
+        // 'react-vendor': {
+        //   test: /[\\/]node_modules[\\/]react.*/,
+        //   name: 'react-vendor',
+        //   chunks: 'all'
+        // },
+        // vendor: {
+        //   // 将 node_modules 中的依赖提出为一个包
+        //   test: /[\\/]node_modules[\\/](?!.*react.*)/,
+        //   name: 'vendor',
+        //   chunks: 'all'
+        // }
+```
 
 # webpack 的竞争者们
 
