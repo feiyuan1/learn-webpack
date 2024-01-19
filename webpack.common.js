@@ -33,12 +33,20 @@ module.exports = (mode) => {
     runtimeChunk: 'single',
     splitChunks: {
       cacheGroups: {
-        vendor: {
-          // 将 node_modules 中的依赖提出为一个包(lodash/react)
+        'test-vendor': {
           test: /[\\/]node_modules[\\/]/,
-          name: 'vendor',
-          chunks: 'all'
-        }
+          name: 'test-vendor',
+          chunks(chunk){
+            return chunk.name === 'test'
+          }
+        },
+        'index-vendor': {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'index-vendor',
+          chunks(chunk){
+            return chunk.name === 'index'
+          }
+        },
       }
     },
   },
