@@ -155,14 +155,6 @@ webpack 会将动态引入的模块单独生成一个 chunk，不与其他代码
 > natural 是根据模块的加载顺序来生成 module.id，意味着，当非动态引入的模块出现增删引入的情况时，会影响模块生成的 contenthash
 > deterministic 和 hash 有关，具体怎么算的没明白...
 
-bundle name
-- output 中如果以contenthashid 作为包名的话，测试下发现：在不修改文件内容，并重新构建后，contenthash 没有变化（当前 webpack 版本为 5.89.0）
-- 当生成的包个数发生变化时，官网文档中表示：其他无关的包 contenthash 也会发生变化（由于解析包的顺序出现差异，导致包的module.id 更新），但是可能由于 webpack 版本不同，目前没有复现这种情况
-- 
-
-## Qs
-- 为什么有的 webpack 版本下，引导模板会导致不修改文件内容 contenhash 也会更新的情况呢？
-
 # webpack 环境变量
 webpack 环境变量仅 webpack.config.js 生效
 
