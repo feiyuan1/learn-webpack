@@ -1,6 +1,7 @@
 const path = require("path")
 const webpack = require("webpack")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const HtmlWebpackPlugin = require("html-webpack-plugin")
 const {NODE_ENV} = require("./env.js")
 
 // 先这样临时删除 dist 目录
@@ -13,7 +14,8 @@ module.exports = (mode) => {
   return {
   // 如何使用多个导入的单入口？
   entry: {
-    index: "./src/index.js",
+    index: {import: "./src/index.js"},
+    test: {import: "./src/test/testIndex.js"},
   }, // 入口文件路径
   // 准确来说是「代码分离」：将代码分离到不同的 bundle 中
   output: {
@@ -32,7 +34,7 @@ module.exports = (mode) => {
     splitChunks: {
       cacheGroups: {
         vendor: {
-          // 将 node_modules 中的依赖提出为一个包
+          // 将 node_modules 中的依赖提出为一个包(lodash/react)
           test: /[\\/]node_modules[\\/]/,
           name: 'vendor',
           chunks: 'all'
@@ -41,6 +43,8 @@ module.exports = (mode) => {
     },
   },
   plugins: [
+    // 由于没有指定 chunk，导致所有 chunk 被所有页面共享，导致 index.html 中包含 test.html 中的内容
+    new HtmlWebpackPlugin({ title: "test of webpack 学习" , filename: 'test.html'}), 
     // 设置 client 代码上下文中的 NODE_ENV 的值
     // '1+1' 被当作代码片段来使用
     new webpack.DefinePlugin({  TWO: '1+1', TEST: JSON.stringify(process.env.NODE_ENV)}),
