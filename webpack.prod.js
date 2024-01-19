@@ -6,6 +6,6 @@ const {NODE_ENV} = require("./env.js")
 module.exports = merge(common(NODE_ENV.PROD), {
   devtool: 'source-map',
   plugins: [
-    new HtmlWebpackPlugin({ title: "webpack 学习" }), 
+    new HtmlWebpackPlugin({ title: "webpack 学习", chunks:['index'] }), 
   ]
 })

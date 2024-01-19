@@ -33,7 +33,7 @@ module.exports = merge(common(NODE_ENV.DEV), {
 ],
   },
   plugins: [
-    new HtmlWebpackPlugin({ title: "dev-webpack 学习" }), 
+    new HtmlWebpackPlugin({ title: "dev-webpack 学习", chunks:['index'] }), 
     // new webpack.optimize.ModuleConcatenationPlugin()
   ],
 })
