@@ -7,7 +7,7 @@ private: true
 
 # bundle、chunk、module、chunk 组
 
-## 目录结构
+## 测试用的目录结构
 为了方便说明，假定当前的目录结构为：
 - src
   - index.js
@@ -462,6 +462,53 @@ webpack 提供了 mini-css-extract-plugin 将 css 从主应用程序中分离
   - 使用 webpack-dev-server & 使用浏览器缓存后，发现 size 小于原本资源的大小
   - 使用 build，加载资源时对应的 size 大小无论是否使用浏览器缓存，没有区别
 
+# webpack 中的模块系统
+支持两种：cjs esm
+
+## 设置模块系统
+> 默认情况下，webpack 会自动检测文件使用哪种模块系统，然后通过 Babel 转换为目标环境支持的形式
+
+package.json 文件中，type: "module" | "commonjs"
+
+type 值决定了所有文件使用的模块系统
+
+## esm（首选的、推荐的）
+> 模块引入时的扩展名
+> 当指定 type 为 module 的前提下，webpackConfig.rule.resolve.fullySpecified 设置为 true 表示 esm 模块引入时不能省略扩展名
+
+### 严格模式
+使用 esm 会默认进入严格模式
+
+### esm 生效前提
+- 在脱离 webpack 的环境下，在引用 script 时指定 type 为 module，即可使用 esm，否则会报错
+- 在 webpack 环境下
+  - 指定文件扩展名为 .mjs（这得益于 Node）
+  - DataURI 中指定 mime 类型为 text/javascript、application/javascript
+
+## cjs
+CommonJs 下不支持 require、module、exports 等
+
+所以 HMR 中使用 import.meta.webpackHot 替代 module.hot
+
+## webpack 下的模块语法转换
+> 参考文章：https://cloud.tencent.com/developer/article/1643103
+
+通过 babel 的能力来完成
+1. babel/parser 将代码转换为 AST
+2. babel/traverse　从　AST　中间模块间依赖关系解析出来
+   1. 如果没有依赖关系，可能只能转换最外层的模块
+   2. 需要根据依赖关系，递归的转换所有模块直到叶子模块为止
+3. ｂabel/core 将原始代码转为浏览器可识别的语法
+4. ｂabel/preset-env 预置的一些语法转换规则
+
+## Qs
+- fullySpecified 属性只针对 esm 模块有效？
+- 哪些场景会使用 text/javascript、application/javascript 这两种 mime 类型的 DataURI？
+- webpack 解析出来的依赖关系
+  - 联想到了 webpack 编译后的文件中导出的东西：
+  - > webpack_exports 相关的逻辑会涉及到所有的导入，其他部分与不定义 test.js 没有区别,
+  - > ps: MultiEntryImportCut.png 是这部分区别的截图
+
 # Loader
 对代码的翻译
 
@@ -492,20 +539,8 @@ webpack 提供了 mini-css-extract-plugin 将 css 从主应用程序中分离
   - 看到有一种实现是根据 hash 来的：监听 onhashchange
   - 本地的话，需要借助 webpack 的能力吧，毕竟本地服务时通过 webpack-dev-server 启动的
   - 主要是不清楚：如何将路由与文件相关联？
-```
-// 将 react 相关依赖提取到一个包
-        // 'react-vendor': {
-        //   test: /[\\/]node_modules[\\/]react.*/,
-        //   name: 'react-vendor',
-        //   chunks: 'all'
-        // },
-        // vendor: {
-        //   // 将 node_modules 中的依赖提出为一个包
-        //   test: /[\\/]node_modules[\\/](?!.*react.*)/,
-        //   name: 'vendor',
-        //   chunks: 'all'
-        // }
-```
+  - 所以 import.meta.webpackHot 中
+    - import.meta 是 Node 提供而非 webpack 提供？
 
 # webpack 的竞争者们
 
