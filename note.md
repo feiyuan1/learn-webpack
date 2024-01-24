@@ -145,9 +145,21 @@ webpack 会将动态引入的模块单独生成一个 chunk，不与其他代码
 ## preload 预加载
 父模块与子模块并行加载
 
+## 懒加载
+
+### react 懒加载
+详见 有道云笔记-react 基础/react 了解
+
+### script 懒加载
+详见 有道云笔记-js 基础
+
+
 ## Qs
 - 为什么入口文件添加 预加载/预获取提示无效？
 - webpack 新版本是否已经修复，或者是否有修复方案？
+- 动态导入和懒加载不同么？？
+  - 所以懒加载只是在动态导入的基础上，更精确的控制模块的加载时机？比如在某次交互后？
+  - 联想到了图片懒加载
 
 # webpack 缓存
 为了更好的利用缓存，相关的一项配置：optimization.moduleIds（模块 id 的生成策略） 由 defaultvalue：natural 更新为了 defaultValue: deterministic
@@ -434,8 +446,13 @@ webpack 提供了 mini-css-extract-plugin 将 css 从主应用程序中分离
 - 减小带宽占用？？不必同时加载多个模块？
 - 控制资源加载的优先级
 
+## react code splitting
+- 懒加载
+- 加载模块过程中搭配 fallback UI，提升用户体验
+ 
+详见 有道云笔记-react 基础/react 了解
+
 ## Qs
-- 动态导入和懒加载不同么？？
 - 公共组件、工具是以什么办法分离的？以及如何判断是否需要分离？
   - 和 node_modules 一样的问题，全部分离，意味着每次都要加载一个非常大的文件
   - 是否需要再切割？如何切割呢？
