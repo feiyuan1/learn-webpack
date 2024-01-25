@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "anywhere": "^1.6.0"
+    "anywhere": "^1.6.0",
+    "typescript": "^5.3.3"
   }
 }
