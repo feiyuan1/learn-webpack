@@ -234,6 +234,8 @@ webpack.config.js 中通过 devtool 选项配置 sourceMap 风格，开发环境
 
 # 模块热替换
 webpack.HotModuleReplacementPlugin 将接口暴露在 module.hot 以及 import.meta.webpackHot 中
+> import.meta 由 Nodejs 提供，用于描述当前引入模块的信息
+> webpack 在此基础上，增加了 webpackHot 属性
 
 - webpack-dev-server 较新版本默认支持热更新
   - 本质利用的是插件：webpack.HotModuleReplacementPlugin
