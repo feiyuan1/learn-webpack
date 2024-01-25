@@ -1,0 +1,14 @@
+{
+  "name": "esmodule",
+  "version": "1.0.0",
+  "description": "test esm",
+  "main": "test.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "anywhere": "^1.6.0"
+  }
+}
