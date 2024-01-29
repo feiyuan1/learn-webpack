@@ -63,6 +63,10 @@ module.exports = (mode) => {
   module: {
     rules: [
       {
+        test: /\.ts$/i,
+        use:['ts-loader']
+      },
+      {
         test: /\.css$/i, // 处理 css 文件，先安装依赖，再配置
         use: [{
           loader: MiniCssExtractPlugin.loader, // 将 css 抽离到文件中，通过 link 标签将文件引入 html 中
@@ -70,10 +74,10 @@ module.exports = (mode) => {
         }, "css-loader"], // 逆序执行
         // use: ["style-loader", "css-loader"], // 将 css 内容以 style 标签的形式插入 DOM
       },
-      // {
-      //   test: /\.(png|svg|jpg|jpeg|gif)$/i, // 处理图片，先安装依赖，再配置
-      //   type: "asset/resource",
-      // },
+      {
+        test: /\.(png|svg|jpg|jpeg|gif)$/i, // 处理图片，先安装依赖，再配置
+        type: "asset/resource",
+      },
     ],
   },
 }}

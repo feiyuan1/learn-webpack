@@ -8,6 +8,7 @@
 import DemoWithCss from "./components/demoWithCss"
 import { square } from "./components/DemoForTreeShaking"
 // import {consoleReact} from "./NormalImport"
+import {greeter} from './testForTs/index.js'
 
 function asyncGetComponent() {
   const element = document.createElement("div")
@@ -51,3 +52,6 @@ console.log('square: ', square(2))
 
 // 测试常规引入第三方工具
 // consoleReact()
+
+// 测试使用 ts
+console.log(greeter('world.'))
