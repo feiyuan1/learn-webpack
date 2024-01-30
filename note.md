@@ -511,6 +511,52 @@ CommonJs 下不支持 require、module、exports 等
   - > webpack_exports 相关的逻辑会涉及到所有的导入，其他部分与不定义 test.js 没有区别,
   - > ps: MultiEntryImportCut.png 是这部分区别的截图
 
+# webpack 下的 ts
+
+## ts-loader
+
+识别 ts/js 文件
+
+> ts-loader 要放置在所有处理 js 文件的其他 loader 之前
+
+## tsconfig.json
+
+该文件需要是用来配合 ts-loader 工作的，决定了 ts-loader 的输出内容（和 ts 部分的编译配置选项是一样的）
+
+## source map
+
+tsconfig.json 中启用 source map，并将 devtools：inline-source-map，将内联的 source map 输出到编译后的 js 文件中
+
+## 引入其他资源
+
+默认情况下，ts 支持引入的模块为 ts/js/ets/ejs 等 script 类型，如果引入其他类型，比如图片 png，会报错：cannot find module，可以在 .d.ts 文件中对 png 类型进行声明
+
+```
+// anyName.d.ts
+declare module '*.png'
+```
+
+> .d.ts 文件的路径要求：在 ts-loader 与 tsconfig include 要求的范围内
+
+## Qs
+
+- 可以看到 ts-loader 的输出内容吗？
+  - ts-loader 做了什么？
+- 如果 ts-loader 大于 include 要求的范围可能会导致类型定义无法生效
+
+> 举个例子：
+>
+> include：src/\*
+>
+> ts-loader test: src/\*\*/\*.ts
+>
+> 此时，src/dir1/xxx.ts 可以进行类型校验，src/dir1/xxx.d.ts 声明没有生效（修正 include 为 src/\*\*/\* 两个文件都可以生效）
+>
+> 为什么 ts 文件可以进行类型校验？按照 include 的要求来说，ts 不应该也不生效吗？如果是以 ts-loader 为主，那为什么 d.ts 文件声明没有生效？
+>
+> 难道他们两个有分工：ts-loader 主要负责类型校验，include 负责所有 ts 相关的处理？？？
+
+
 # Loader
 对代码的翻译
 
