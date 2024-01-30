@@ -11,8 +11,8 @@ const {NODE_ENV} = require("./env.js")
 module.exports = merge(common(NODE_ENV.DEV), {
   // devtool: 'eval-cheap-module-source-map',
   // devtool: 'eval',
-  // devtool: 'inline-source-map',
-  devtool: false,
+  devtool: 'inline-source-map',
+  // devtool: false,
   optimization: {
     usedExports: true,
     // minimize: true,
