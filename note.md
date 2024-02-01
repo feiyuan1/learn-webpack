@@ -556,6 +556,17 @@ declare module '*.png'
 >
 > 难道他们两个有分工：ts-loader 主要负责类型校验，include 负责所有 ts 相关的处理？？？
 
+# webpack 下的 Web Worker
+
+> 注意：仅限于 esm，commonJS 中不可用
+>
+> node 下也提供了可以多线程运行 js 的工具：worker-threads（仅限 esm）
+
+## 使用
+
+webpack 5：与原生相同，通过 Worker 构造器（为了在不使用 bundler 的情况下也可以运行代码），但是 scriptURL 只能接收 URL 生成的字符串
+
+webpack 4：使用 worker-loader
 
 # Loader
 对代码的翻译
