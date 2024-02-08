@@ -9,3 +9,14 @@ self.addEventListener('install', () => {
 self.addEventListener('activate', () => {
   console.log('activate')
 })
+
+const customFetch = async request => {
+  console.log('custom fetch.')
+  return fetch(request)
+}
+
+self.addEventListener('fetch', e => {
+  console.log('request: ', e.request)
+
+  e.respondWith(customFetch(e.request))
+})
