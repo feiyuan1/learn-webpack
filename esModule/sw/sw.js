@@ -12,11 +12,25 @@ self.addEventListener('activate', () => {
 
 const fetchWithFallback = async request => {
   console.log('custom fetch.')
+  const cache = await caches.match(request)
+
+  // 优先使用缓存
+  if(cache) {
+    console.log('use cache')
+    return cache
+  }
+
   try{
     const response = await fetch(request)
     if(response.status !== 200){
       throw response.status
     }
+
+    // 添加缓存
+    const cache = await caches.open('version1')
+    cache.put(request, response.clone())
+    console.log('put in cache.')
+
     return response
   }catch(e) {
     console.log('request error: ', e)
