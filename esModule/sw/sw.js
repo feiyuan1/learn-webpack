@@ -38,6 +38,31 @@ const manageCacheVersion = () => {
   }
 }
 
+const deleteOldCaches = () => {
+  // db 中 oldVersions 清掉
+  const request = indexedDB.open(DB_NAME, 1)
+
+  request.onsuccess = event => {
+    const db = event.target.result
+    console.log('delte-opened-db: ', db)
+    const transaction = db.transaction([storeMap.esModule], 'readwrite')
+    const objectStore = transaction.objectStore(storeMap.esModule)
+    objectStore.get(VERSION_KEY).onsuccess = (event) => {
+      console.log('get-key: ', event.target)
+      const {result} = event.target
+      // cachestorage 清理
+      result.oldVersions.map(async version => {
+        await caches.delete(getVersion(version))
+      })
+      result.oldVersions = []
+      result.usingVersion = curVersion
+      objectStore.put(result, VERSION_KEY)
+    }
+    
+  }
+  console.log('clear cache.')
+}
+
 // 监听 sw 的 install（安装） 事件
 self.addEventListener('install', () => {
   console.log('installing...')
@@ -47,6 +72,9 @@ self.addEventListener('install', () => {
 // 监听 sw 的 activate（激活） 事件
 self.addEventListener('activate', () => {
   console.log('activate')
+  // 每次 sw 版本更新时清空缓存
+  // TODO 可以指定一个过期时间？如果没有新版本的 sw 的话？
+  deleteOldCaches()
 })
 
 const fetchWithFallback = async request => {
