@@ -1,8 +1,47 @@
-// service worker 脚本
+/** service worker 脚本 */ 
+// TODO 使用模块
+// import {DB_NAME, storeMap} from '../../constants.js'
+
+// 数据库名称
+const DB_NAME = 'webpack-db'
+
+// objectStore 的 name 与 key 的映射
+const storeMap = {
+  esModule: 'esmodule'
+}
+
+// 管理版本的键参数
+const VERSION_KEY = 'version'
+// 当前缓存版本
+let curVersion;
+// 获取缓存版本
+const getVersion = (value) => `version${value}`
+
+// 处理缓存版本号
+const manageCacheVersion = () => {
+  // 此时，视为数据库已经创建好
+  const request = indexedDB.open(DB_NAME, 1)
+
+  request.onsuccess = event => {
+    const db = event.target.result
+    console.log('opened-db: ', db)
+    const transaction = db.transaction([storeMap.esModule], 'readwrite')
+    const objectStore = transaction.objectStore(storeMap.esModule)
+    objectStore.get(VERSION_KEY).onsuccess = (event) => {
+      console.log('get-key: ', event.target)
+      const {curVersion: version, oldVersions = [], usingVersion: usedVersion} = event.target.result || {}
+      curVersion = (version || 0) + 1
+      oldVersions.push(version)
+      objectStore.put({curVersion, oldVersions, usingVersion: usedVersion || curVersion}, VERSION_KEY)
+    }
+    
+  }
+}
 
 // 监听 sw 的 install（安装） 事件
 self.addEventListener('install', () => {
   console.log('installing...')
+  manageCacheVersion()
 })
 
 // 监听 sw 的 activate（激活） 事件
@@ -16,7 +55,7 @@ const fetchWithFallback = async request => {
 
   // 优先使用缓存
   if(cache) {
-    console.log('use cache')
+    console.log('use cache.')
     return cache
   }
 
@@ -27,7 +66,7 @@ const fetchWithFallback = async request => {
     }
 
     // 添加缓存
-    const cache = await caches.open('version1')
+    const cache = await caches.open(getVersion(curVersion))
     cache.put(request, response.clone())
     console.log('put in cache.')
 

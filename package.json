@@ -8,7 +8,8 @@
     "build": "webpack --env app.platform='' --mode=production",
     "build:dev": "webpack --mode=development",
     "start:prod": "webpack serve --mode=production",
-    "start": "webpack serve --mode development"
+    "start": "webpack serve --mode development",
+    "start:any": "anywhere -s"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
   "homepage": "https://github.com/feiyuan1/learn-webpack#readme",
   "devDependencies": {
     "@webpack-cli/serve": "^2.0.5",
+    "anywhere": "^1.6.0",
     "css-loader": "^6.8.1",
     "css-minimizer-webpack-plugin": "^5.0.1",
     "html-webpack-plugin": "^5.5.3",
@@ -31,12 +33,12 @@
     "style-loader": "^3.3.3",
     "terser": "^5.26.0",
     "terser-webpack-plugin": "^5.3.10",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
-    "webpack-merge": "^5.10.0",
-    "ts-loader": "^9.5.1",
-    "typescript": "^5.3.3"
+    "webpack-merge": "^5.10.0"
   },
   "sideEffects": [
     "*.css"
