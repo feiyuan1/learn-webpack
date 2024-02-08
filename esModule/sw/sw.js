@@ -10,13 +10,22 @@ self.addEventListener('activate', () => {
   console.log('activate')
 })
 
-const customFetch = async request => {
+const fetchWithFallback = async request => {
   console.log('custom fetch.')
-  return fetch(request)
+  try{
+    const response = await fetch(request)
+    if(response.status !== 200){
+      throw response.status
+    }
+    return response
+  }catch(e) {
+    console.log('request error: ', e)
+    return fetch('./fallback.js')
+  }
 }
 
 self.addEventListener('fetch', e => {
   console.log('request: ', e.request)
 
-  e.respondWith(customFetch(e.request))
+  e.respondWith(fetchWithFallback(e.request))
 })
