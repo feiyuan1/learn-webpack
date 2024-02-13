@@ -2,6 +2,21 @@
 // TODO 使用模块
 // import {DB_NAME, storeMap} from '../../constants.js'
 
+// fetch error fallbacks
+const fallbacks = {
+  404: './fallback/404.js',
+  500: './fallback/500.js',
+  default: './fallback/default.js'
+}
+
+// 用于本地调试，正常来讲，线上不会出现这种 case
+const syntaxFallbacks = {
+  TypeError: './fallback/typeerror.js',
+}
+
+// 缓存白名单
+const includes = [/\.\/.*/, /sw\/.*/]
+
 // 数据库名称
 const DB_NAME = 'webpack-db'
 
@@ -101,12 +116,28 @@ const fetchWithFallback = async request => {
     return response
   }catch(e) {
     console.log('request error: ', e)
-    return fetch('./fallback.js')
+    if(fallbacks[e]){
+      return fetch(fallbacks[e])
+    }
+
+    const syntaxError = Object.keys(syntaxFallbacks).find(type => {
+      return e.toString().indexOf(type) !== -1
+    })
+
+    if(syntaxError){
+      return fetch(syntaxFallbacks[syntaxError])
+    }
+    
+    return fetch(fallbacks.default)
   }
 }
 
 self.addEventListener('fetch', e => {
   console.log('request: ', e.request)
 
-  e.respondWith(fetchWithFallback(e.request))
+  if(includes.some(reg => reg.test(e.request.url))){
+    e.respondWith(fetchWithFallback(e.request))
+  } else {
+    e.respondWith(fetch(e.request))
+  }
 })

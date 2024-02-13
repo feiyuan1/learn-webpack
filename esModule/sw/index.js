@@ -26,5 +26,5 @@ const addScript = (url) => {
 
 await registerServiceWorker()
 
-// 测试 fallback
-addScript('/module')
+// 测试 404 fallback
+addScript('./module')
