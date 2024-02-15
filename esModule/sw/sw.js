@@ -8,29 +8,26 @@ const fallbacks = {
   500: './fallback/500.js',
   default: './fallback/default.js'
 }
-
 // 用于本地调试，正常来讲，线上不会出现这种 case
 const syntaxFallbacks = {
   TypeError: './fallback/typeerror.js',
 }
-
 // 缓存白名单
 const includes = [/\.\/.*/, /sw\/.*/]
-
 // 数据库名称
 const DB_NAME = 'webpack-db'
-
 // objectStore 的 name 与 key 的映射
 const storeMap = {
   esModule: 'esmodule'
 }
-
 // 管理版本的键参数
 const VERSION_KEY = 'version'
 // 当前缓存版本
 let curVersion;
 // 获取缓存版本
 const getVersion = (value) => `version${value}`
+// 缓存有效期，以 ms 为 单位
+const validDuration = 5000
 
 // 处理缓存版本号
 const manageCacheVersion = () => {
@@ -49,11 +46,10 @@ const manageCacheVersion = () => {
       oldVersions.push(version)
       objectStore.put({curVersion, oldVersions, usingVersion: usedVersion || curVersion}, VERSION_KEY)
     }
-    
   }
 }
 
-const deleteOldCaches = () => {
+const deleteOldCaches = (then) => {
   // db 中 oldVersions 清掉
   const request = indexedDB.open(DB_NAME, 1)
 
@@ -72,10 +68,34 @@ const deleteOldCaches = () => {
       result.oldVersions = []
       result.usingVersion = curVersion
       objectStore.put(result, VERSION_KEY)
+      then(result.usingVersion)
     }
     
   }
   console.log('clear cache.')
+}
+
+const delayClearCache = (version) => {
+  // 暂时处理整个版本，比较简单（按理来说，处理某个文件可以最大程度的利用缓存）
+  // 在产生新的 timer 时，清空旧的 timer，保证仅会存在一个 timer
+  const request = indexedDB.open(DB_NAME, 1)
+
+  request.onsuccess = event => {
+    const db = event.target.result
+    console.log('opened-db: ', db)
+    const transaction = db.transaction([storeMap.esModule], 'readwrite')
+    const objectStore = transaction.objectStore(storeMap.esModule)
+    objectStore.get(VERSION_KEY).onsuccess = (event) => {
+      const {timer: oldTimer} = event.target.result
+      // 初始化时，可能不存在旧的 timer
+      oldTimer && clearInterval(oldTimer)
+      console.log('oldTimer: ', oldTimer)
+      objectStore.put({...event.target.result, timer: setInterval(() => {
+        caches.delete(getVersion(version))
+        console.log('version expired: ', version)
+      }, validDuration)}, VERSION_KEY)
+    }
+  }
 }
 
 // 监听 sw 的 install（安装） 事件
@@ -86,10 +106,9 @@ self.addEventListener('install', () => {
 
 // 监听 sw 的 activate（激活） 事件
 self.addEventListener('activate', () => {
-  console.log('activate')
-  // 每次 sw 版本更新时清空缓存
-  // TODO 可以指定一个过期时间？如果没有新版本的 sw 的话？
-  deleteOldCaches()
+  console.log('activate: ', curVersion)
+  // 清空缓存时机：1. sw 版本迭代 2. 缓存版本过期
+  deleteOldCaches(delayClearCache)
 })
 
 const fetchWithFallback = async request => {
@@ -107,8 +126,8 @@ const fetchWithFallback = async request => {
     if(response.status !== 200){
       throw response.status
     }
-
-    // 添加缓存
+    
+    // 添加缓存(此时，curVersion 即为 usingVersion)
     const cache = await caches.open(getVersion(curVersion))
     cache.put(request, response.clone())
     console.log('put in cache.')
