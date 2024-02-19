@@ -1,6 +1,6 @@
 const registerServiceWorker = async() => {
     if('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.register('/esModule/sw/sw.js')
+    const registration = await navigator.serviceWorker.register('./sw.js')
 
     if(registration.installing){
       console.log('installing')
