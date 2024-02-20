@@ -26,6 +26,8 @@ const VERSION_KEY = 'version'
 let curVersion;
 // 获取缓存版本
 const getVersion = (value) => `version${value}`
+// 从数据库获取是否强制更新 sw 版本
+const UPDATE_KEY = 'update'
 
 /**
  * 构造器，产出可以清除缓存的实例
@@ -138,10 +140,26 @@ const deleteOldCaches = () => {
   console.log('clear cache.')
 }
 
+const updateSW = () => {
+  const request = indexedDB.open(DB_NAME, 1)
+
+  request.onsuccess = event => {
+    const db = event.target.result
+    const transaction = db.transaction([storeMap.esModule], 'readwrite')
+    const objectStore = transaction.objectStore(storeMap.esModule)
+    objectStore.get(UPDATE_KEY).onsuccess = (event) => {
+      if(event.target.result){
+        self.skipWaiting()
+      }
+    }
+  }
+}
+
 // 监听 sw 的 install（安装） 事件
 self.addEventListener('install', () => {
   console.log('installing...')
   manageCacheVersion()
+  updateSW()
 })
 
 // 监听 sw 的 activate（激活） 事件
