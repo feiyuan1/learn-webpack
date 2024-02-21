@@ -3,6 +3,7 @@ const webpack = require("webpack")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const {NODE_ENV} = require("./env.js")
+const WorkboxPlugin = require("workbox-webpack-plugin")
 
 // 先这样临时删除 dist 目录
 const rimraf = require('rimraf');
@@ -50,6 +51,12 @@ module.exports = (mode) => {
       }
     },
   },
+  devServer: {
+    devMiddleware: {
+      // 这里还能开启服务端渲染呢
+      wroteToDisk: true
+    }
+  },
   plugins: [
     new HtmlWebpackPlugin({ title: "test of webpack 学习" , filename: 'test.html', chunks: ['test']}), 
     // 设置 client 代码上下文中的 NODE_ENV 的值
@@ -59,6 +66,11 @@ module.exports = (mode) => {
       filename: devMode ? "[name].css" : "[name].[contenthash].css",
       chunkFilename: devMode ? "[id].css" : "[id].[contenthash].css",
     }),
+    new WorkboxPlugin.GenerateSW({
+      // 这看起来会总是使用新版本
+      skipWaiting: true,
+      clientsClaim: true
+    })
   ],
   module: {
     rules: [
