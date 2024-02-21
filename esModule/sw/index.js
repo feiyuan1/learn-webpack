@@ -32,9 +32,9 @@ const registerServiceWorker = async() => {
     if(registration.active){
       console.log('active')
     }
-    setInterval(() => {
-      registration.update()
-    }, 5000)
+    // setInterval(() => {
+    //   registration.update()
+    // }, 5000)
   }
 }
 

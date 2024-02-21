@@ -568,6 +568,33 @@ webpack 5：与原生相同，通过 Worker 构造器（为了在不使用 bundl
 
 webpack 4：使用 worker-loader
 
+# SSR
+
+devServer.devMiddleware.serverSideRender 选项可以开启 SSR
+
+# PWA（Service Worker 使用）
+
+Progressive Web Application 渐进式网络应用（可以离线访问的应用）
+
+Workbox-webpack-plugin 是一个可以产生 service-worker.js 脚本的插件，通过脚本利用缓存使应用可以离线访问
+
+> 如何产生 sw 脚本？构建，输出到 /dist（output 目录）
+
+webpack-dev-server 不是 serve 应用程序到 dist 的，而 sw 脚本通过 Workbox 是输出在 dist 路径下的，所以需要找一个 serve 工具，比如 http-serve，serve 到 dist 路径
+
+> 因为离线效果是通过 sw + 缓存实现的，可以从 devtool 中看到：
+>
+> 1 sw 信息（比如版本号、脚本，只不过脚本是被 uglify 过的）
+>
+> 2 cache Storage 中的内容（也就是 build 产出的内容被缓存了下来）
+
+## Qs
+
+- 为什么要等到 load（页面加载完毕）再注册 sw？
+- 是否会自动拉取新版本，什么时机产生新的版本？
+  - 这可能需要查看 Workbox 官方文档了。。
+
+
 # Loader
 对代码的翻译
 
@@ -600,6 +627,9 @@ webpack 4：使用 worker-loader
   - 主要是不清楚：如何将路由与文件相关联？
   - 所以 import.meta.webpackHot 中
     - import.meta 是 Node 提供而非 webpack 提供？
+- webpack 在编译时想要忽视某些文件怎么做（就像 package.json sideEffects 那样可以在没有引用时，忽视对某些文件的引入；就像 tsconfig 中的 include、exclude）
+  - 我以为默认只会处理 src 下的文件
+
 
 # webpack 的竞争者们
 
