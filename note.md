@@ -689,6 +689,27 @@ import A from 'a.png?react'
 - webpack 在编译时想要忽视某些文件怎么做（就像 package.json sideEffects 那样可以在没有引用时，忽视对某些文件的引入；就像 tsconfig 中的 include、exclude）
   - 我以为默认只会处理 src 下的文件
 
+# webpack 了解
+
+## 构建进度百分比
+[参考](https://dev.to/smelukov/webpack-5-progress-percentage-calculation-345o)
+
+在大型项目构建中可能会发现问题：进度（百分比）可能会错乱、抖动
+
+> 百分比的计算：构建好的模块数量 / 总模块数量
+
+原因是无法在构建之前知晓准确的模块，随着构建，可能产生的模块会越来越多
+
+解决历程：
+
+1 ProgressPlugin 支持指定总的模块数量（不一定非常准确，大概的就可）
+
+比如，在一次构建时，拿到总的模块数量，再赋值给插件
+
+2 ProgressPlugin 插件指定 entry points 代替模块，也就是计算方式为：构建好的入口数量 / 总入口数量
+
+3 webpack 内部，在一次构建完成后，存储总模块数量
+
 # webpack 的竞争者们
 
 ## Bun
