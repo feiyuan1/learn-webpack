@@ -54,7 +54,7 @@ module.exports = (mode) => {
   devServer: {
     devMiddleware: {
       // 这里还能开启服务端渲染呢
-      wroteToDisk: true
+      // wroteToDisk: true
     }
   },
   plugins: [
@@ -66,11 +66,11 @@ module.exports = (mode) => {
       filename: devMode ? "[name].css" : "[name].[contenthash].css",
       chunkFilename: devMode ? "[id].css" : "[id].[contenthash].css",
     }),
-    new WorkboxPlugin.GenerateSW({
-      // 这看起来会总是使用新版本
-      skipWaiting: true,
-      clientsClaim: true
-    })
+    // new WorkboxPlugin.GenerateSW({
+    //   // 这看起来会总是使用新版本
+    //   skipWaiting: true,
+    //   clientsClaim: true
+    // })
   ],
   module: {
     rules: [

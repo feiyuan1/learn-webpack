@@ -10,7 +10,7 @@
     "start:prod": "webpack serve --mode=production",
     "start": "webpack serve --mode development",
     "start:any": "anywhere -s",
-    "start:server": "http-server dist"
+    "start:server": "webpack --mode=production && http-server dist"
   },
   "repository": {
     "type": "git",

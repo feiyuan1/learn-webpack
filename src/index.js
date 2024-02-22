@@ -57,14 +57,14 @@ console.log('square: ', square(2))
 console.log(greeter('world.'))
 console.log('loginCutSrc: ', loginCut)
 
-if('serviceWorker' in navigator){
-  // 页面加载完毕后
-  window.addEventListener('load', () => {
-    // 注册 sw
-    navigator.serviceWorker.register('/service-worker.js').then(registration => {
-      console.log('SW registered: ', registration);
-    }).catch(registrationError => {
-      console.log('SW registration failed: ', registrationError);
-    });
-  })
-}
+// if('serviceWorker' in navigator){
+//   // 页面加载完毕后
+//   window.addEventListener('load', () => {
+//     // 注册 sw
+//     navigator.serviceWorker.register('/service-worker.js').then(registration => {
+//       console.log('SW registered: ', registration);
+//     }).catch(registrationError => {
+//       console.log('SW registration failed: ', registrationError);
+//     });
+//   })
+// }
