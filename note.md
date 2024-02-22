@@ -594,6 +594,67 @@ webpack-dev-server 不是 serve 应用程序到 dist 的，而 sw 脚本通过 W
 - 是否会自动拉取新版本，什么时机产生新的版本？
   - 这可能需要查看 Workbox 官方文档了。。
 
+# 资源模块
+
+是 webpack5 新提出的一种模块类型，又分为 4 种模块类型，来替换之前引入不同资源使用的 loader
+
+## asset/resource
+> 替代 file-loader
+
+1 输出单独的文件到 dist 目录（指定的 output 路径）
+2 导出 url
+3 可以通过配置，指定该模块类型打包时不输出文件
+```
+// 源文件
+import mainImage from './images/main.png';
+
+img.src = mainImage; // '/dist/151cfcfa1bd74779aadb.png'
+```
+```
+// 打包后
+mainImage = '/dist/151cfcfa1bd74779aadb.png'
+
+// 打包后的目录结构
+- dist
+  - index.js
+  - 151cfcfa1bd74779aadb.png
+```
+
+## asset/inline
+> 替代 url-loader
+
+将文件替换为 data URI
+
+## asset/source
+> 替代 raw-loader
+
+引入文件内容（string 类型）
+
+### 资源查询条件
+比扩展名更精细的指定引入的模块类型，也就是通过正则匹配
+
+```
+// webpack.js
+{
+  resourceQuery: /react/,
+  type: 'asset/source'
+}
+
+// src/index.js
+import A from 'a.png?react'
+```
+
+## asset（通用资源类型）
+> 替代之前的 url-loader + 资源大小配置
+
+1 默认策略是：根据指定的资源大小临界值，大于临界值处理为 asset/resource，小于临界值处理为 asset/inline
+2 默认临界值为 8kb（可以更改）
+3 可以指定策略，即 generator 赋值为 function，返回值为 true 处理为 asset/inline
+
+## Qs
+- 在公司有使用 import A from 'a.png?react'
+  - <A /> A 可以直接作为一个 React 组件使用
+  - 这是如何实现的？？？
 
 # Loader
 对代码的翻译
@@ -625,11 +686,8 @@ webpack-dev-server 不是 serve 应用程序到 dist 的，而 sw 脚本通过 W
   - 看到有一种实现是根据 hash 来的：监听 onhashchange
   - 本地的话，需要借助 webpack 的能力吧，毕竟本地服务时通过 webpack-dev-server 启动的
   - 主要是不清楚：如何将路由与文件相关联？
-  - 所以 import.meta.webpackHot 中
-    - import.meta 是 Node 提供而非 webpack 提供？
 - webpack 在编译时想要忽视某些文件怎么做（就像 package.json sideEffects 那样可以在没有引用时，忽视对某些文件的引入；就像 tsconfig 中的 include、exclude）
   - 我以为默认只会处理 src 下的文件
-
 
 # webpack 的竞争者们
 

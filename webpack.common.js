@@ -87,9 +87,21 @@ module.exports = (mode) => {
         // use: ["style-loader", "css-loader"], // 将 css 内容以 style 标签的形式插入 DOM
       },
       {
-        test: /\.(png|svg|jpg|jpeg|gif)$/i, // 处理图片，先安装依赖，再配置
+        test: /\.(|jpg|gif)$/i, // 处理图片，先安装依赖，再配置
         type: "asset/resource",
+        generator: {
+          // 不输出文件，当然运行 html 会导致报错
+          // emit: false
+        }
       },
+      {
+        test: /\.png$/i,
+        type: "asset/inline"
+      },
+      {
+        test: /\.(jpeg|svg)/,
+        type: "asset/source"
+      }
     ],
   },
 }}
