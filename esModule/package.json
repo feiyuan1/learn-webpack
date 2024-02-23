@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "test esm",
   "main": "test.html",
+  "exports": {
+    ".": "./src/module.js",
+    "./main": "./src/main.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsbuild": "tsc --declaration",

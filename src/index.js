@@ -10,8 +10,10 @@ import { square } from "./components/DemoForTreeShaking"
 // import {consoleReact} from "./NormalImport"
 import {greeter, loginCut} from './testForTs/index.js'
 import multiEntry from './MultiEntryImportCut.jpg'
-import loginCutJpeg from './loginCut.jpeg'
+// import loginCutJpeg from './loginCut.jpeg'
 import circle from './circle.svg'
+import { main } from "esModule/main"
+import createModule from 'esmodule'
 
 function asyncGetComponent() {
   const element = document.createElement("div")
@@ -79,3 +81,9 @@ console.log('circleContent: ', circle)
 //     });
 //   })
 // }
+
+// 尝试使用 package.json exports
+// cmd 在该项目根路径下执行 npm link /path/to/esmodule 把本地包链接到该项目中
+// 在 esmodule 包中利用 exports 指定导出的文件
+console.log('main: ', main)
+console.log('esmoudle: ', createModule)
