@@ -657,16 +657,118 @@ import A from 'a.png?react'
   - 这是如何实现的？？？
 
 # Loader
-对代码的翻译
+转换模块内容，辅助 webpack 完成构建
 
-## style-loader
-常见的是将 style-loader 与 css-loader 搭配使用，那么两者的作用分别是什么？
+
+
+默认情况下，webpack 支持的模块类型有：es5 模块、资源模块、CommonJS 模块、AMD 模块、WebAssembly 模块（支持在 Web 平台运行，for C/C++/Rust 等语言）
+
+所以对一些其他类型的模块无法编译：css、ts
+
+> loader 本身也是模块，可以是一个单独的包，也可以是项目中的一个文件
+
+## 特点
+- 可异步
+- 可在 node 中运行
+- 链式调用
+- 需要兼容 node（所以通常会提供两个文件：index.js cjs.js）
+- 能够产生任意的额外文件
+- plugin 可以为 loader 带来更多特性（提供一些功能支持）
+
+## 开发
+
+1 导出函数
+
+接收参数：模块内容，两种类型：string | Buffter(Object)、sourcemap、metadata（辅助信息）
+
+返回值：类型为 string（且最后一个 loader 返回值必须符合符合 js 语法？）
+
+> 比如：css-loader 虽然处理的 css 文件，但返回的也是 js 内容
+
+2 runtime
+
+> 应该避免对每个处理的模块都生成同样的通用代码，把这部分代码抽离到单独的文件（甚至文件夹）中，也就是共享模块
+>
+> 再在 loader 的主逻辑中引用这些模块
+
+原因？
+
+好处：
+- 逻辑清晰
+- 可能占用空间不同？构建速度不同？
+
+## 类型
+- preLoader
+- normal loader
+- inline loader
+- postLoader
+
+其中：
+- preLoader 和 postLoader 可以通过 Rule.enforce（'pre' | 'post'）来指定;
+- 内联/行内 loader 是在引用（import/require）模块时指定的 loader（存在多个 loader 时通过 ！来分割）
+  - 不推荐，后续可能会被废弃
+- 其他的都是 normal loader
+
+## loader 的不同阶段
+
+### pitch（预处理）
+不同类型的 loader 执行顺序：post -> inline -> normal -> pre
+
+同类型的 loader 执行顺序（use 中数组）：从左到右
+
+在此期间调用的是 loader 导出的 pitch 方法，当该方法返回值时，剩余的 loader 不管是 pitch 还是 normal 阶段都不会执行，且开始逆向执行 loader 的 normal 阶段
+
+> 比如：存在 3 个 loader（按照 normal 执行顺序）：A -> B -> C
+> 
+> 其中 B 导出的 pitch 方法返回了内容，那么执行路径是：
+> C pitch -> B pitch -> B normal -> C normal
+
+> loader 上下文中存在 data 是在 pitch 和normal 阶段共享的
+
+### normal（正常代码执行）
+不同类型的 loader 执行顺序： pre -> normal -> inline -> post
+
+同类型的 loader 执行顺序（use 中数组）：从右到左
+
+这就是 loader 转换模块内容的执行过程
+
+## loader 自测
+
+1 Rule.use
+
+可以通过 path.resolve() 解析相对路径
+```
+{
+  test: /\.css$/i,
+  use: [path.resolve('./css-loader/dist/index.js')]
+}
+```
+
+2 resolveLoader.modules
+
+可以使用多个 loader
+
+3 npm link package-url
+
+到目标项目（使用 loader 的项目）的根路径下执行命令，其中 package-url 是相对于该路径的相对路径
+
+> 不管是通过相对路径还是软链，即使 loader 依赖的包在使用方中没有安装，也不会有问题：module not found
+
+## 常用的 loader
+
+### css-loader & style-loader & less-loader
+- css-loader
+  - 识别并解析 css 语法
+  - 所以如果只添加了 css-loader，样式可以被解析但不会在页面生效
+- style-loader
+  - 将 css 插入到 style 标签，再插入 head
+- 像 less-loader 这种，应该最先执行，将其他语法转为 css，再由 css-loader 解析
 
 ## Qs
 - style-loader 将 css 插入 style 标签？还做了其他的吗？
-- css-loader 将 css 文件内容转为了什么？
-  - 因为它既可以将结果给 style-loader，又可以给 mini-css-extract-plugin，单独生成 css 文件
-- 那么如果只引入 css-loader，通过 css 文件形式定义的样式还能生效吗？又是以什么形式生效的呢？
+- 为什么要把通用代码抽离出来（runtime）
+- loader 什么时候接收 buffer 什么时候接收 string
+- 为什么在官网找不到 default function&pitch 的 API 说明？
 
 # plugin
 对功能的扩展
@@ -688,6 +790,7 @@ import A from 'a.png?react'
   - 主要是不清楚：如何将路由与文件相关联？
 - webpack 在编译时想要忽视某些文件怎么做（就像 package.json sideEffects 那样可以在没有引用时，忽视对某些文件的引入；就像 tsconfig 中的 include、exclude）
   - 我以为默认只会处理 src 下的文件
+- buffer 是啥？
 
 # webpack 了解
 
