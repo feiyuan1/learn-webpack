@@ -84,6 +84,7 @@ module.exports = (mode) => {
           loader: MiniCssExtractPlugin.loader, // 将 css 抽离到文件中，通过 link 标签将文件引入 html 中
           options: {},
         }, "css-loader"], // 逆序执行
+        // use: [path.resolve('./css-loader/dist/index.js')], // 逆序执行
         // use: ["style-loader", "css-loader"], // 将 css 内容以 style 标签的形式插入 DOM
       },
       {
@@ -101,6 +102,10 @@ module.exports = (mode) => {
       {
         test: /\.(jpeg|svg)/,
         type: "asset/source"
+      },
+      {
+        test: /testForLoader.*\.js$/,
+        use: ['test-loader']
       }
     ],
   },

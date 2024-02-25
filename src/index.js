@@ -14,6 +14,7 @@ import multiEntry from './MultiEntryImportCut.jpg'
 import circle from './circle.svg'
 import { main } from "esModule/main"
 import createModule from 'esmodule'
+import testForLoader from "./testForLoader/index"
 
 function asyncGetComponent() {
   const element = document.createElement("div")
@@ -87,3 +88,6 @@ console.log('circleContent: ', circle)
 // 在 esmodule 包中利用 exports 指定导出的文件
 console.log('main: ', main)
 console.log('esmoudle: ', createModule)
+
+// 尝试使用 loader
+console.log('loader-result: ', testForLoader)
