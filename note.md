@@ -41,6 +41,15 @@ ps：splitChunksPlugin 会将一个 chunk 切分为多个 chunk，并合并成�
 ### main bundle
 默认情况下，将入口起点打包生成 main.js, 这是 main bundle
 
+## 三者之间的关系
+可能与两个地方有关：
+- Stats Data
+- record
+  - webpack config recordsPath option，指定一个路径，用于生成 json 文件
+  - 其中 record 指的是：一条用于存储跨多次构建的模块标识符的记录，可以用于：
+    - 确保拆分 bundle
+    - 每次构建后的模块变化
+
 # manifest
 管理模块间的交互.
 
@@ -770,8 +779,140 @@ import A from 'a.png?react'
 - loader 什么时候接收 buffer 什么时候接收 string
 - 为什么在官网找不到 default function&pitch 的 API 说明？
 
+# Stats Data
+构建完成后的概括信息，可以看到模块统计信息与模块间的依赖关系图
+
+有两种形式：输出 json 文件 | stats object
+
+> 两种形式的数据结构不一定相同，但是信息是一致的
+
+## json 文件
+
+1 命令行
+
+在 CLI 中执行 webpack --profile --json=compilation-stats.json
+
+> 常用于分析评估 webpack 项目的编译质量
+
+## stats object
+
+1 作为回调参数
+
+是 compiler.run 提供的回调的第二个参数，包含 module 和 chunk 信息
+
+2 webpack config option
+
+stats，可以配置输出哪些信息（这似乎是输出到控制台的？）
+
+## 具体内容
+- chunk 信息
+  - chunk-id
+  - 包含的模块
+  - chunk name
+- bundle（output 目录中的文件）信息
+  - 包含的 chunk
+  - bundle name
+  - 大小
+- entry 信息
+  - entry name
+  - 对应的 output 信息
+  - 涉及的 chunk
+- module 信息
+  - 涉及的 chunk
+  - module 对应的原始文件的路径
+
+## Qs
+- webpack config stats option 是控制输出到控制台的信息还是 json 文件还是回调中参数的？
+
 # plugin
-对功能的扩展
+首先补充些前情提要：
+
+## compiler 实例
+包含 webpack 环境的配置信息，比如 webpack 模块实例、compilation 实例、生命周期钩子
+
+> 实例本身的作用只是维持生命周期运行，其他的功能都委托到了已经注册的插件上完成（比如输出资源、打包、加载）
+>
+> 一般来说，只会创建一个主要 compiler 实例，可以配合创建多个字 compiler 实例来代理特定任务
+
+### 一些属性
+- hooks 管理钩子
+- run 开始编译
+  - 接收回调，且该回调的参数：error stats
+  - 其中第二个参数是 stats object，包含了编译后的 module 和 chunk 信息，见 stats data
+- watch 开始监听变更
+
+### 生命周期钩子
+这些钩子都在 compiler.hooks 下
+
+```
+compiler.hooks.entryOption
+```
+只是列出来其中一些：
+
+entryOption -> beforeRun -> run -> compile -> thisCompilation -> compilation -> make -> shouldEmit -> emit -> afterEmit
+
+从左到右的调用时机分别是：
+- webpack config entry 被处理后
+- 开始构建时，立刻调用
+- 意味着开始一次构建
+- 创建 compilation 之前
+- 在 compilation 事件触发之前（这个阶段主要是 初始化 compilation）
+- 创建 compilation 实例完毕
+- compilation 创建结束之前（这个阶段主要是 从 entry 开始递归分析依赖，准备对每个模块进行构建）
+- 在资源输出之前（告知是否需要输出资源）
+- 输出资源到 output 路径之前
+- 输出资源之后
+
+> 对于异步 hook 来说，在当前阶段执行完毕后，应该调用回调中的 callback 方法，告知 webpack 进入下一阶段
+>
+> 或者使用 tabPromise 的话，调用 resolve 或 reject 结束当前阶段
+
+## compilation 实例
+作为 compiler 事件回调的参数，包括当前模块资源、编译生成的资源、生命周期钩子，会对依赖图中的所有模块进行编译
+
+> 每一次文件的变更，都会创建新的 compilation 实例
+
+在编译阶段，模块会经历：加载 load -> 封存 seal -> 优化 optimization -> 分块 chunk -> 哈希 hash -> 重新创建 restore
+
+### 一些属性
+- compilation.modules 变异后的模块数组
+- module.fileDependecies 模块中引入的源文件路径的数组
+- compilation.chunks 输出的 chunk 集合
+- chunk.getModules chunk 中引入的模块
+- chunk.files 该 chunk 生成的 output 中的文件的集合
+
+### 生命周期钩子
+挂在 compilation.hooks 下，下面列了一些：
+
+- record
+  - 将 compilation 相关信息存到 record 中
+- seal
+  - 该 compilation 实例不再接收新的模块
+- hash
+  - 为该 compilation 实例添加 hash
+- moduleHash
+  - 为模块添加 hash
+- buildModule
+  - 构建模块开始之前调用
+
+## 是什么
+在功能上的扩展，本身是一个对象，必须声明 apply 方法（该方法会在插件安装时被 compiler 调用）
+
+## 如何工作
+webpack 在运行生命周期过程中，广播事件，插件可以在对应阶段下注册回调，以此在特定阶段执行自己的插件任务
+
+> 也就是说，插件可以在 webpack 整个生命周期中生效，而 loader 只能在打包之前运行
+
+## 使用
+webpack config plugins option，通过 new 创建插件实例并插入数组
+
+## 功能
+- 资源管理
+  - MiniCssExtractPlugin 将 css 单独抽离为一个文件
+  - HtmlWbpackPlugin 生成 html 文件，并且引入 output 下的资源（css、js 等）
+- 环境变量注入
+  - DefinePlugin 创建全局变量/对象
+- ...
 
 # TODO
 - 更新配置后，打包生成的文件并没有更新或者是没有重新打包？
