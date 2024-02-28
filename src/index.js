@@ -15,6 +15,7 @@ import circle from './circle.svg'
 import { main } from "esModule/main"
 import createModule from 'esmodule'
 import testForLoader from "./testForLoader/index"
+import a from './testForCircleDeps/a'
 
 function asyncGetComponent() {
   const element = document.createElement("div")
@@ -91,3 +92,6 @@ console.log('esmoudle: ', createModule)
 
 // 尝试使用 loader
 console.log('loader-result: ', testForLoader)
+
+// 测试循环依赖的表现
+console.log('circle-a: ', a())
