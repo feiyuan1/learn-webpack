@@ -141,6 +141,10 @@ new HtmlWebpackPlugin({ title: "test of webpack 学习" , filename: 'test.html',
 webpack 会将动态引入的模块单独生成一个 chunk，不与其他代码耦合在一起，可以通过魔法注释 webpackChunkName 指定 chunk 名称，webpack 也可以提供一个默认名称
 
 > 动态引入的模块不属于入口 chunk
+>
+> 动态引入本质上会创建 script，并插入 head 中
+> 
+> 当动态引入的模块加载失败，且该模块不在页面上，不会触发 catch 的逻辑，直到触发超时逻辑，webpack 会将错误处理脚本（error script）添加到模块对应 script 标签的 onerror 属性上
 
 ## 多次引入同一模块
 只会生成一份 chunk，被多次加载而已，chunk.name 使用第一次的赋值（如果存在多次指定 chunk 名称的情况）
@@ -335,7 +339,7 @@ step4：针对已经导入的文件，进行文件内容副作用分析评估
 step5：针对已经导入&跳过的文件，进行依赖分析
 
 ## Qs
-- 依赖分析是会做什么呢？总不能纯分析吧？
+- 依赖分析是会做什么呢？总不能纯分析吧？-找到模块的依赖，并对依赖重复 step1~5
 - 使用了 webpack+babel+node 的前端项目，打包后的文件都使用的什么模块化语法呢？
 - 官网中提到可以在 build 时添加选项 --optimize-minimize 来启用 TerserPlugin，但尝试后，发现会报错：不是可用的选项
 - 在压缩时遇到一个问题：
@@ -448,7 +452,7 @@ optimization: {
 ### css 文件分离
 webpack 提供了 mini-css-extract-plugin 将 css 从主应用程序中分离
 
-#### mini-css-extract-plugin 与 css-loader 区别
+#### mini-css-extract-plugin 与 style-loader 区别
 - 前者是将 css 抽离为 .css 文件，通过 link 标签将 css 文件引入 html 中；后者是利用 js 将 css 内容插入 style 标签中，插入 DOM
 - 前者更适用于生产环境，可以是 .css&.js 文件并行加载
 
@@ -475,6 +479,7 @@ webpack 提供了 mini-css-extract-plugin 将 css 从主应用程序中分离
 
 # webpack 中的模块系统
 支持两种：cjs esm
+> 所以 Webpack 支持所有符合 es5 标准的浏览器
 
 ## 设置模块系统
 > 默认情况下，webpack 会自动检测文件使用哪种模块系统，然后通过 Babel 转换为目标环境支持的形式
@@ -668,8 +673,6 @@ import A from 'a.png?react'
 # Loader
 转换模块内容，辅助 webpack 完成构建
 
-
-
 默认情况下，webpack 支持的模块类型有：es5 模块、资源模块、CommonJS 模块、AMD 模块、WebAssembly 模块（支持在 Web 平台运行，for C/C++/Rust 等语言）
 
 所以对一些其他类型的模块无法编译：css、ts
@@ -792,7 +795,7 @@ import A from 'a.png?react'
 
 在 CLI 中执行 webpack --profile --json=compilation-stats.json
 
-> 常用于分析评估 webpack 项目的编译质量
+> 常用于分析输出结果
 
 ## stats object
 
@@ -852,16 +855,16 @@ compiler.hooks.entryOption
 entryOption -> beforeRun -> run -> compile -> thisCompilation -> compilation -> make -> shouldEmit -> emit -> afterEmit
 
 从左到右的调用时机分别是：
-- webpack config entry 被处理后
-- 开始构建时，立刻调用
-- 意味着开始一次构建
-- 创建 compilation 之前
-- 在 compilation 事件触发之前（这个阶段主要是 初始化 compilation）
-- 创建 compilation 实例完毕
-- compilation 创建结束之前（这个阶段主要是 从 entry 开始递归分析依赖，准备对每个模块进行构建）
-- 在资源输出之前（告知是否需要输出资源）
-- 输出资源到 output 路径之前
-- 输出资源之后
+- entryOption - webpack config entry 被处理后
+- beforeRun - 开始构建时，立刻调用
+- run - 意味着开始一次构建
+- compile - 开始创建 compilation
+- thisCompilation - 在 compilation 事件触发之前（这个阶段主要是 初始化 compilation）
+- compilation - 创建 compilation 实例完毕
+- make - compilation 创建结束之前（这个阶段主要是 从 entry 开始递归分析依赖，准备对每个模块进行构建）
+- shouldEmit - 在资源输出之前（告知是否需要输出资源）
+- emit - 输出资源到 output 路径之前
+- afterEmit - 输出资源之后
 
 > 对于异步 hook 来说，在当前阶段执行完毕后，应该调用回调中的 callback 方法，告知 webpack 进入下一阶段
 >
@@ -884,6 +887,7 @@ entryOption -> beforeRun -> run -> compile -> thisCompilation -> compilation -> 
 ### 生命周期钩子
 挂在 compilation.hooks 下，下面列了一些：
 
+> records: 是一块数据片段，用于放置跨多次构建的模块标识符，可以从中看出每次构建之间的模块变化
 - record
   - 将 compilation 相关信息存到 record 中
 - seal
@@ -934,6 +938,7 @@ webpack config plugins option，通过 new 创建插件实例并插入数组
 - buffer 是啥？
 
 # webpack 了解
+> webpack 5 要求 node 版本在 10.13.0+
 
 ## 构建进度百分比
 [参考](https://dev.to/smelukov/webpack-5-progress-percentage-calculation-345o)
@@ -953,6 +958,13 @@ webpack config plugins option，通过 new 创建插件实例并插入数组
 2 ProgressPlugin 插件指定 entry points 代替模块，也就是计算方式为：构建好的入口数量 / 总入口数量
 
 3 webpack 内部，在一次构建完成后，存储总模块数量
+
+## 底层代码
+
+### 导入
+
+同步导入会被转为 -> __webpack_require__
+异步导入 -> __webpack_require__.e
 
 # webpack 的竞争者们
 
