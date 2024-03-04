@@ -92,6 +92,9 @@ entry: ['index.js', 'test.js']
 ```
 new HtmlWebpackPlugin({ title: "dev-webpack 学习" })
 ```
+
+> html 文件引入 script 标签时，script 标签定义了 defer 属性，避免阻塞 html 文件解析（减少白屏事件 FCP first content paint）
+
 ### 构建一个 MPA
 1. 新增 test 入口
 ```
@@ -120,12 +123,89 @@ new HtmlWebpackPlugin({ title: "test of webpack 学习" , filename: 'test.html',
 - 如何使用多个导入的单入口？
 -  "由于生成的 2 个 html 文件都没有指定包含的 chunk，所以默认情况下，2 个会共享所有 chunk。也就是说，index.html 中包含 test chunk，test.html 中也包含 index.js" 这是符合默认行为预期的么？
 
-# 启用本地服务
+# webpack-dev-server
+
+## 用处
+- 实时页面预览
+- 启动本地服务
+- 启动代理，解决本地开发中的跨域
+
+## 实时页面预览
+> 输出资源的位置：
+> 
+> 编译后的文件存放在内存，所以无法在项目目录中看到 dist
+>
+> 而构建（build 命令）生成的文件放在磁盘中
+
+### 页面自动刷新
+本质是调用 window.location.reload API
+
+当没有开启 HMR 或者 HMR 失败时，都会进行自动刷新
+
+> 会有问题：页面中的状态信息无法保留，所以出现了 HMR
+
+### HMR
+只更新改变的模块，其他模块的信息和状态保留
+
+webpack.HotModuleReplacementPlugin 将接口暴露在 module.hot 以及 import.meta.webpackHot 中
+> import.meta 是 es6 新增的属性（伴随 esm 的出现产生的），用于描述当前引入模块的信息
+> webpack 在此基础上，增加了 webpackHot 属性
+
+- 各个框架也都有对应的工具
+  - react-hot-loader（ps: 在 RN 中，新版本推荐使用 react fast refresh）
+  - Angular HMR
+  - Vue-loader
+  - ...
+
+> webpack-dev-server 新版本默认开启，webpack.config devServer.hot
+>
+> 发现 css 文件可以触发 HMR，js 文件不可以
+>
+> 是因为添加的 style-loader & css-mini-extract-plugin.loader 内置了 css 文件热更新的逻辑
+>
+> 而 js 需要注册模块的热更新回调，否则会自动刷新页面，浏览器会加载新的模块，但其中导出的方法需要根据使用情况重新调用
+
+```
+// index.js
+// 使用 module.hot API 监听需要支持热替换的文件
+
+module.hot.accept(moduleName, callback)
+```
+
+### 原理
+分为客户端和服务端两部分
+
+服务端：
+- 启动 websocket 服务器
+  - 与 websocket 客户端通信
+- 创建 webserver 服务
+  - 开始监听请求，响应请求，从内存读取内容并发送
+  - 监听事件，当编译完毕时，调度 websocket 服务器通知浏览器
+  - 创建 client.js 并将其编译到 chunk 中
+- 使用 webpack-dev-middleware
+  - 监听文件更新
+  - 输出编译后的静态资源
+  - 监听编译完毕
+  - 通知 webserver 服务
+
+客户端 client.js 分两部分：
+- 启动 websocket 客户端
+  - 收到消息，通知 HMRPlugin
+- HMRPlugin 
+  - 判断需要热更新还是页面刷新
+    - 若是前者，通过 jsonp 加载模块（拉取新代码）
+    - 删除旧模块
+    - 执行新的模块代码
+    - 调用 accept 注册的回调
+
+其中，HMRPlugin 会在需要浏览器更新时生成两个文件：json，包括本次编译 hash 以及有变更的 chunk name；js，编译后生成的新代码
+
+## 启用本地服务
 安装 webpack-dev-server，cli 中执行 npx webpack serve 即可
 
 > 一般提供的根路径为第一个入口起点生成的 html 页面
 
-## 访问本地服务的其他页面
+### 访问本地服务的其他页面
 通过访问 localhost:port/webpack-dev-server 可以查看本地服务中所有的目录结构，访问对应文件路径即可
 ```
 // 服务中的目录结构
@@ -137,12 +217,41 @@ new HtmlWebpackPlugin({ title: "test of webpack 学习" , filename: 'test.html',
 ```
 那么可以通过 localhost:port/test.html 访问 test.html
 
+## 解决本地开发跨域
+主要通过 webpack-dev-server 来解决本地的跨域问题
+
+### 原理
+- 在本地启动服务器，让应用运行在 localhost 下的某个端口上
+- 启动代理服务器(http-proxy-middleware - http 代理中间件)，将客户端的请求转发到后端服务器上，并将响应转发给本地服务器
+
+> 其中，本地服务器与代理服务器同源，所以两者之间不存在跨域问题
+> 服务端之间不存在同源策略的限制
+>
+> 请求由谁发出？浏览器发出，则受限制，服务端发出，则不受限制
+
+### 配置方式
+```
+// webpack.config.json
+
+devServer.proxy: {
+  '/path': {
+    secure: bool, // true（默认值）为不接收发送到 https 服务器上的请求
+    'pathRewrite': {'/path': ''}, // 用 '' 替换 '/path'
+    changeOrigin: bool, // Request Header 中的 Origin 是否替换(但是被替换为什么？)
+    target: 'https://xxx.xx.xx' // target url
+  }
+}
+```
+
+## Qs
+- module 是 webpack 提供的吗？难道也是 node 提供的?（这应该在 node 全局对象里可以看到答案）
+  - 已知：webpack.config.js 中使用 cjs 语法 module.exports 导出了 webpack 配置
+    - 那么，整个 module 是 node 提供的？
+
 # 动态引入文件
 webpack 会将动态引入的模块单独生成一个 chunk，不与其他代码耦合在一起，可以通过魔法注释 webpackChunkName 指定 chunk 名称，webpack 也可以提供一个默认名称
 
 > 动态引入的模块不属于入口 chunk
->
-> 动态引入本质上会创建 script，并插入 head 中
 > 
 > 当动态引入的模块加载失败，且该模块不在页面上，不会触发 catch 的逻辑，直到触发超时逻辑，webpack 会将错误处理脚本（error script）添加到模块对应 script 标签的 onerror 属性上
 
@@ -166,6 +275,18 @@ webpack 会将动态引入的模块单独生成一个 chunk，不与其他代码
 ### script 懒加载
 详见 有道云笔记-js 基础
 
+## 背后的逻辑
+
+### 编译过程
+加载模块 -> 注册模块 -》添加到模块列表 -》 loader 翻译 -》 转为 AST -》 解析依赖 
+
+### 运行时过程
+当执行到 import 语句时，会：
+加载模块 -》为模块添加标识（尚未加载） -》 创建 promise -》 创建 script 标签 -》 插入 head -》 注册 load 回调 -》 当前模块状态为加载中 -》 将 promise 实例存放在上下文中 -》 调用超时检测逻辑 -》 配合 load 回调中的逻辑，若成功加载没有超时，更新模块状态为加载完毕，并将 promise resolve 掉
+
+> 在此过程中，出现的模块加载异常无法进入 catch 中，只能等到超时被触发，或者可以通过 onError 属性，定义脚本异常时的处理逻辑
+
+> 当触发 script.load 事件时，意味着该模块中的代码准备被执行
 
 ## Qs
 - 为什么入口文件添加 预加载/预获取提示无效？
@@ -244,29 +365,6 @@ webpack.config.js 中通过 devtool 选项配置 sourceMap 风格，开发环境
 - 不同的 source map 风格打包生成的辅助文件也不同
   - 比如，devtool: source-map 会生成 .js .js.map 两个文件；devtool: eval-cheap-module-source-map 只会生成 .js 文件
 - 有些风格，比如 hidden-source-map 适用于生产环境，生成 source map，但不会在打包后的文件末尾添加注释映射到源文件，避免被普通用户看到源码，这种可以将生成的 source map 文件提供给错误报告工具辅助排查线上问题，比如 sentry
-
-# 模块热替换
-webpack.HotModuleReplacementPlugin 将接口暴露在 module.hot 以及 import.meta.webpackHot 中
-> import.meta 由 Nodejs 提供，用于描述当前引入模块的信息
-> webpack 在此基础上，增加了 webpackHot 属性
-
-- webpack-dev-server 较新版本默认支持热更新
-  - 本质利用的是插件：webpack.HotModuleReplacementPlugin
-  - 所以是怎么实现的，这个插件应该只提供了 API？
-- 手动操作模块热替换：
-  - 使用 module.hot API 监听需要支持热替换的文件，当文件发生变化时，会触发 API 提供的回调，在回调中手动更新，比如删掉原来元素，重新执行更新后的文件内容，生成新的元素，并添加到文档中
-- 各个框架也都有对应的工具
-  - react-hot-loader（ps: 在 RN 中，新版本推荐使用 react fast refresh）
-  - Angular HMR
-  - Vue-loader
-  - ...
-
-## Qs
-
-- 存储在内存中，在没有手动生成 manifest.json 文件时，从哪里可以看到 webpack 存储的映射？？ 
-- module 是 webpack 提供的吗？难道也是 node 提供的?
-  - 已知：webpack.config.js 中使用 cjs 语法 module.exports 导出了 webpack 配置
-    - 那么，整个 module 是 node 提供的？
 
 # tree shaking
 刪除 js 上下文中未引用的代码
@@ -967,6 +1065,16 @@ webpack config plugins option，通过 new 创建插件实例并插入数组
 异步导入 -> __webpack_require__.e
 
 # webpack 的竞争者们
+
+## Vite
+
+区别：
+- 编译模块：
+  - webpack 会事先编译好所有模块
+  - vite 按需编译，执行到引入语句时，发出请求，开始编译
+- 缓存
+  - webpack 会将编译结果存储到磁盘上（指的是构建，若是本地开发 HMR 存到内存中）
+  - vite 不会缓存
 
 ## Bun
 到目前为止，github star 数量高于 webpack，说明大家还挺支持的，使用率呢？
