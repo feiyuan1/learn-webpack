@@ -95,3 +95,16 @@ console.log('loader-result: ', testForLoader)
 
 // 测试循环依赖的表现
 console.log('circle-a: ', a())
+
+// web-dev-server 调用 window.location.reload 会触发该事件
+window.onload = () => {
+  console.log('load')
+}
+
+// 是 demoWithCss 支持HMR
+if(module.hot){
+  module.hot.accept('./components/demoWithCss.js',()=>{
+  console.log("module updated..")
+  DemoWithCss()
+  })
+ }
