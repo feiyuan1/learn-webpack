@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<head>
+  <title>try to use requestIdleCallback</title>
+</head>
+<body>
+  <p>使用 <code>requestIdleCallback()</code> 方法的后台任务协作调度演示。</p>
+
+  <div id="container">
+    <div class="label">解码量子丝极谱发射中...</div>
+  
+    <progress id="progress" value="0"></progress>
+  
+    <button id="startButton">开始</button>
+  
+    <div class="label counter">
+      任务 <span id="currentTaskNumber">0</span> /
+      <span id="totalTaskCount">0</span>
+    </div>
+  </div>
+  
+  <div id="logBox">
+    <div class="logHeader">记录</div>
+    <div id="log" style="max-height: 200px; overflow-y: scroll;"></div>
+  </div>
+
+  <script src="./applyRequestIdleCallback.js"></script>
+</body>
+</html>
