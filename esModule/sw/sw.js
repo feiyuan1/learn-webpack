@@ -30,6 +30,40 @@ const getVersion = (value) => `version${value}`
 const UPDATE_KEY = 'update'
 
 /**
+ * 生成器+indexedDB
+ */
+function asyncGenerator(generator){
+  const gen = generator()
+  function step(args){
+    const {value, done} = gen.next(args)
+    if(done) {
+      return
+    }
+
+    value.onsuccess = event => {
+      step(event.target.result)
+    }
+  }
+  step()
+}
+
+/**
+ * 
+ * @param {function} step1 拿到 objectStore 后的回调
+ * @param {function} step2 拿到 objectStore 中数据后的回调
+ * @returns 
+ */
+const getEsModuleGenerator = (step1, step2) => asyncGenerator(function* generator(){
+  const db = yield indexedDB.open(DB_NAME, 1)
+  const transaction = db.transaction([storeMap.esModule], 'readwrite')
+  const objectStore = transaction.objectStore(storeMap.esModule)
+  const result = yield step1(objectStore)
+  step2(objectStore, result)
+})
+
+const getVersionKey = objectStore => objectStore.get(VERSION_KEY)
+
+/**
  * 构造器，产出可以清除缓存的实例
  * @param {Request} request 请求体
  * @param {number} validDuration 缓存有效期，以 ms 为 单位 
@@ -47,7 +81,7 @@ const KeyObject = function (request, validDuration = 5000) {
 
 KeyObject.clearAll = () => {
   // read from indexedDB
-  KeyObject.openDB((objectStore, data) => {
+  const clearAll = (objectStore, data) => {
     const {keyobjects} = data
     if(!keyobjects) {
       return
@@ -59,20 +93,8 @@ KeyObject.clearAll = () => {
     })
     // delete all keyObjects
     objectStore.put({...data, keyobjects: {}}, VERSION_KEY)
-  })
-}
-
-KeyObject.openDB = function(resolve) {
-  const request = indexedDB.open(DB_NAME, 1)
-
-  request.onsuccess = event => {
-    const db = event.target.result
-    const transaction = db.transaction([storeMap.esModule], 'readwrite')
-    objectStore = transaction.objectStore(storeMap.esModule)
-    objectStore.get(VERSION_KEY).onsuccess = (event) => {
-      resolve(objectStore, event.target.result)
-    }
   }
+  getEsModuleGenerator(getVersionKey, clearAll)
 }
 
 KeyObject.prototype.generateTimer = function(){
@@ -86,11 +108,12 @@ KeyObject.prototype.generateTimer = function(){
   }
 
   // 将 this push to indexedDB
-  KeyObject.openDB((objectStore, data) => {
+  const pushObject = (objectStore, data) => {
     const {keyobjects = {}} = data
     keyobjects[this.key] = this.timer
     objectStore.put({...data, keyobjects}, VERSION_KEY)
-  })
+  }
+  getEsModuleGenerator(getVersionKey, pushObject)
 
   return this.timer
 }
@@ -98,67 +121,45 @@ KeyObject.prototype.generateTimer = function(){
 // 处理缓存版本号
 const manageCacheVersion = () => {
   // 此时，视为数据库已经创建好
-  const request = indexedDB.open(DB_NAME, 1)
-
-  request.onsuccess = event => {
-    const db = event.target.result
-    console.log('opened-db: ', db)
-    const transaction = db.transaction([storeMap.esModule], 'readwrite')
-    const objectStore = transaction.objectStore(storeMap.esModule)
-    objectStore.get(VERSION_KEY).onsuccess = (event) => {
-      console.log('get-key: ', event.target)
-      // TODO 缺个 mergeObject
-      const {curVersion: version, oldVersions = [], usingVersion: usedVersion, keyobjects} = event.target.result || {}
-      curVersion = (version || 0) + 1
-      oldVersions.push(version)
-      objectStore.put({curVersion, oldVersions, usingVersion: usedVersion || curVersion, keyobjects}, VERSION_KEY)
-    }
+  const updateVersion = (objectStore, data) => {
+    const {curVersion: version, oldVersions = [], usingVersion: usedVersion, keyobjects} = data || {}
+    curVersion = (version || 0) + 1
+    oldVersions.push(version)
+    objectStore.put({curVersion, oldVersions, usingVersion: usedVersion || curVersion, keyobjects}, VERSION_KEY)
   }
+  getEsModuleGenerator(getVersionKey, updateVersion)
 }
 
 const deleteOldCaches = () => {
   // db 中 oldVersions 清掉
-  const request = indexedDB.open(DB_NAME, 1)
-
-  request.onsuccess = event => {
-    const db = event.target.result
-    console.log('delte-opened-db: ', db)
-    const transaction = db.transaction([storeMap.esModule], 'readwrite')
-    const objectStore = transaction.objectStore(storeMap.esModule)
-    objectStore.get(VERSION_KEY).onsuccess = (event) => {
-      console.log('get-key: ', event.target)
-      const {result} = event.target
-      // cachestorage 清理
-      result.oldVersions.map(async version => {
-        await caches.delete(getVersion(version))
-      })
-      result.oldVersions = []
-      result.usingVersion = curVersion
-      objectStore.put(result, VERSION_KEY)
-    }
+  const clearCache = (objectStore, data) => {
+    // cachestorage 清理
+    data.oldVersions.map(async version => {
+      await caches.delete(getVersion(version))
+    })
+    data.oldVersions = []
+    data.usingVersion = curVersion
+    objectStore.put(data, VERSION_KEY)
   }
+  getEsModuleGenerator(getVersionKey, clearCache)
   console.log('clear cache.')
 }
 
 const updateSW = () => {
-  const request = indexedDB.open(DB_NAME, 1)
-
-  request.onsuccess = event => {
-    const db = event.target.result
-    const transaction = db.transaction([storeMap.esModule], 'readwrite')
-    const objectStore = transaction.objectStore(storeMap.esModule)
-    objectStore.get(UPDATE_KEY).onsuccess = (event) => {
-      if(event.target.result){
-        self.skipWaiting()
-      }
+  const getUpdateKey = objectStore => objectStore.get(UPDATE_KEY)
+  const update = (_, shouldUpdate) => {
+    if(shouldUpdate){
+      self.skipWaiting()
     }
   }
+  getEsModuleGenerator(getUpdateKey, update)
 }
 
 // 监听 sw 的 install（安装） 事件
 self.addEventListener('install', () => {
   console.log('installing...')
   manageCacheVersion()
+  // 强制更新 sw 版本
   updateSW()
 })
 

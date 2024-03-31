@@ -20,5 +20,5 @@ export const getEsModuleGenerator = (step1, step2) => asyncGenerator(function* g
   const transaction = db.transaction([storeMap.esModule], 'readwrite')
   const objectStore = transaction.objectStore(storeMap.esModule)
   const result = yield step1(objectStore)
-  step2(result)
+  step2(objectStore, result)
 })
