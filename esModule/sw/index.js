@@ -1,20 +1,12 @@
 import { shouldUpdate } from "../../constants/key.js"
-import {DB_NAME, storeMap} from '../../constants/db.js'
+import {getEsModuleGenerator} from "./generator.js"
 
 const UPDATE_KEY = 'update'
 
 // 更新数据库存储的【强制更新 sw 版本】
 const changeUpdateStatus = (resolve) => {
-  const request = indexedDB.open(DB_NAME, 1)
-
-  request.onsuccess = event => {
-    const db = event.target.result
-    const transaction = db.transaction([storeMap.esModule], 'readwrite')
-    const objectStore = transaction.objectStore(storeMap.esModule)
-    objectStore.put(shouldUpdate, UPDATE_KEY).onsuccess = () => {
-      resolve()
-    }
-  }
+  const step2 = objectStore => objectStore.put(shouldUpdate, UPDATE_KEY)
+  getEsModuleGenerator(step2, resolve)
 }
 
 const registerServiceWorker = async() => {
