@@ -12,9 +12,9 @@ import {greeter, loginCut} from './testForTs/index.js'
 import multiEntry from './MultiEntryImportCut.jpg'
 // import loginCutJpeg from './loginCut.jpeg'
 import circle from './circle.svg'
-import { main } from "esModule/main"
-import createModule from 'esmodule'
-import testForLoader from "./testForLoader/index"
+// import { main } from "esModule/main"
+// import createModule from 'esmodule'
+// import testForLoader from "./testForLoader/index"
 import a from './testForCircleDeps/a'
 
 function asyncGetComponent() {
@@ -87,11 +87,11 @@ console.log('circleContent: ', circle)
 // 尝试使用 package.json exports
 // cmd 在该项目根路径下执行 npm link /path/to/esmodule 把本地包链接到该项目中
 // 在 esmodule 包中利用 exports 指定导出的文件
-console.log('main: ', main)
-console.log('esmoudle: ', createModule)
+// console.log('main: ', main)
+// console.log('esmoudle: ', createModule)
 
 // 尝试使用 loader
-console.log('loader-result: ', testForLoader)
+// console.log('loader-result: ', testForLoader)
 
 // 测试循环依赖的表现
 console.log('circle-a: ', a())

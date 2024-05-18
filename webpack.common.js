@@ -103,10 +103,10 @@ module.exports = (mode) => {
         test: /\.(jpeg|svg)/,
         type: "asset/source"
       },
-      {
-        test: /testForLoader.*\.js$/,
-        use: ['test-loader']
-      }
+      // {
+      //   test: /testForLoader.*\.js$/,
+      //   use: ['test-loader']
+      // }
     ],
   },
 }}
