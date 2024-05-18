@@ -28,6 +28,12 @@ module.exports = (mode) => {
     // 清除 output 目录无用的文件
     clean: true,
   },
+  externals: {
+    react: 'React', // key 对应引入包的名称 value 原包向window中注入的变量名称
+    'react-dom': 'ReactDOM',
+    'react-dom/client': 'ReactDOM',
+    '@sentry/react': 'Sentry'
+  },
   optimization: {
     // 设置 client 代码上下文中的 NODE_ENV 的值
     // nodeEnv: process.env.NODE_ENV,

@@ -31,13 +31,13 @@ function asyncGetComponent() {
   // icon.width = 100
   // element.appendChild(icon)
   // element.classList.add("red")
-  return import(/* webpackChunkName: "lodash-vendor" */"lodash")
-    .then(({ default: _ }) => {
-      element.innerHTML = _.join(["Hello", "webpack"], " ")
+  return import(/* webpackChunkName: "lodash-vendor" */"lodash/join")
+    .then(({ default: join }) => {
+      element.innerHTML = join(["Hello", "webpack"], " ")
       return element
     })
     .catch((error) =>
-      console.error("an error occurred while loading the component")
+      console.error("an error occurred while loading the component", error)
     )
 }
 
@@ -67,7 +67,7 @@ console.log('square: ', square(2))
 console.log(greeter('world.'))
 // 测试使用 data URI（assets/inline）
 // 打包后，loginCut 会被替换为 data URI（作为 data URI 被注入到 bundle）
-console.log('loginCutDataURI: ', new URL(loginCut))
+// console.log('loginCutDataURI: ', new URL(loginCut))
 // 测试使用 asset/resource
 // 打包后，会将文件输出到 dist(output 路径)，且会将 multiEntry 替换为 url（发送一个单独的文件，并导出 url）
 console.log('multiEntrySrc: ', multiEntry)
