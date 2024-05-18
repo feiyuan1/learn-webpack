@@ -79,6 +79,15 @@ module.exports = (mode) => {
         use:['ts-loader']
       },
       {
+        test: /\.jsx$/i,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env', '@babel/preset-react'],
+          },
+        }
+      },
+      {
         test: /\.css$/i, // 处理 css 文件，先安装依赖，再配置
         use: [{
           loader: MiniCssExtractPlugin.loader, // 将 css 抽离到文件中，通过 link 标签将文件引入 html 中
