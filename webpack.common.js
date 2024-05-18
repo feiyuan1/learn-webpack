@@ -3,7 +3,8 @@ const webpack = require("webpack")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const {NODE_ENV} = require("./env.js")
-const WorkboxPlugin = require("workbox-webpack-plugin")
+// const WorkboxPlugin = require("workbox-webpack-plugin")
+const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
 
 // 先这样临时删除 dist 目录
 const rimraf = require('rimraf');
@@ -65,6 +66,11 @@ module.exports = (mode) => {
     new MiniCssExtractPlugin({
       filename: devMode ? "[name].css" : "[name].[contenthash].css",
       chunkFilename: devMode ? "[id].css" : "[id].[contenthash].css",
+    }),
+    sentryWebpackPlugin({
+      org: "feiyuan",
+      project: "javascript-react",
+      authToken: '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',
     }),
     // new WorkboxPlugin.GenerateSW({
     //   // 这看起来会总是使用新版本

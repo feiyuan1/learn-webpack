@@ -16,6 +16,9 @@ import circle from './circle.svg'
 // import createModule from 'esmodule'
 // import testForLoader from "./testForLoader/index"
 import a from './testForCircleDeps/a'
+import initReact from "./testForSentry/index.jsx"
+
+initReact()
 
 function asyncGetComponent() {
   const element = document.createElement("div")

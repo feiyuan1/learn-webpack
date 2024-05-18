@@ -10,6 +10,7 @@
     "start:prod": "webpack serve --mode=production",
     "start": "webpack serve --mode development",
     "start:any": "anywhere -s",
+    "start:sentry": "npm run build & npm run start:any",
     "start:server": "webpack --mode=production && http-server dist"
   },
   "repository": {
@@ -26,6 +27,7 @@
     "@babel/core": "^7.24.5",
     "@babel/preset-env": "^7.24.5",
     "@babel/preset-react": "^7.24.1",
+    "@sentry/webpack-plugin": "^2.16.1",
     "@webpack-cli/serve": "^2.0.5",
     "anywhere": "^1.6.0",
     "babel-loader": "^9.1.3",
@@ -52,6 +54,7 @@
   ],
   "dependencies": {
     "lodash": "^4.17.21",
+    "@sentry/react": "^7.113.0",
     "esmodule": "file:esmodule",
     "test-loader": "file:test-loader"
   }
