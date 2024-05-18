@@ -4,7 +4,7 @@
 // import iconUrl from "./icon.png"
 // 样式定义打包后被放在了 style 标签中
 // import "./style.css"
-// import './requireContext'
+import Components from './components'
 import DemoWithCss from "./components/demoWithCss"
 import { square } from "./components/DemoForTreeShaking"
 // import {consoleReact} from "./NormalImport"
@@ -19,6 +19,9 @@ import a from './testForCircleDeps/a'
 import initReact from "./testForSentry/index.jsx"
 
 initReact()
+
+// 测试批量引入文件
+console.log(Components())
 
 function asyncGetComponent() {
   const element = document.createElement("div")
