@@ -295,6 +295,25 @@ webpack 会将动态引入的模块单独生成一个 chunk，不与其他代码
   - 所以懒加载只是在动态导入的基础上，更精确的控制模块的加载时机？比如在某次交互后？
   - 联想到了图片懒加载
 
+# webpack 中的 require
+
+## require
+- 本身是一个方法，用于加载模块
+- 带有 context 属性
+
+影响：
+- 创建上下文
+- 创建上下文模块
+
+## 自定义上下文
+调用 require.context 可以创建自定义上下文，返回的是一个 require 方法，它同样可以：
+- 加载模块，接收参数 request
+- 携带 resolve 属性，该属性也是一个函数，返回模块 id
+  - 可能是模块的相对 url，相对于执行 resolve 方法所在文件路径
+
+## 模块 id
+可以用于 module.hot.accept
+
 # webpack 缓存
 为了更好的利用缓存，相关的一项配置：optimization.moduleIds（模块 id 的生成策略） 由 defaultvalue：natural 更新为了 defaultValue: deterministic
 
