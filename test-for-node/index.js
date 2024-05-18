@@ -1,5 +1,9 @@
 // const applyRequestIdleCallback = require("./applyRequestIdleCallback") 
-
+require('./throttle.js')
+require('./generator.js')
+require('./promise.js')
+require('./middleware.js')
+require('./binaryInsert.js')
 function A(){
   console.log(arguments)
 }
@@ -146,36 +150,55 @@ const delay = (interval) => new Promise(res => {
 // }
 // asyncGenerator(generator)
 
-const asyncGenerator = (generator, args) => {
-  return new Promise((resolve, reject) => {
-    const gen = generator(args)
+// const asyncGenerator = (generator, args) => {
+//   return new Promise((resolve, reject) => {
+//     const gen = generator(args)
 
-    const step = (type, res) => {
-      let generatorResult
-      try{
-        generatorResult = gen[type](res)
-      }catch(e) {
-        reject(e)
-      }
-      const {done, value} = generatorResult
-      if(done){
-        resolve(value)
-        return
-      }
-      Promise.resolve(value).then(data => {
-      // console.log('comine', data)
-        step('next', data)
-      }, err => {step('throw', err)})
-    }
-    step('next')
-  })
-}
+//     const step = (type, res) => {
+//       let generatorResult
+//       try{
+//         generatorResult = gen[type](res)
+//       }catch(e) {
+//         reject(e)
+//       }
+//       const {done, value} = generatorResult
+//       if(done){
+//         resolve(value)
+//         return
+//       }
+//       Promise.resolve(value).then(data => {
+//       // console.log('comine', data)
+//         step('next', data)
+//       }, err => {step('throw', err)})
+//     }
+//     step('next')
+//   })
+// }
 
-asyncGenerator(function* generator(){
-  const result = yield delay(1000)
-  console.log(result)
-  const result2 = yield delay(2000)
-  console.log(result2)
-  const result3 = yield delay(3000)
-  console.log(result3)
+// asyncGenerator(function* generator(){
+//   const result = yield delay(1000)
+//   console.log(result)
+//   const result2 = yield delay(2000)
+//   console.log(result2)
+//   const result3 = yield delay(3000)
+//   console.log(result3)
+// })
+
+// const testModule = require('./module.mjs')
+// console.log('testModule: ', testModule)
+// import('./module.mjs').then(({obj, setObj}) => {
+//   console.log('test: ', obj.val)
+//   setObj(10)
+//   console.log('test-changed: ', obj.val)
+// })
+
+import('./module.mjs').then(({a, setA}) => {
+  console.log('test: ', a)
+  setA(10)
+  console.log('test-changed: ', a)
 })
+
+// const {obj, setObj} = require('./cjs.js')
+// console.log('test: ', obj.val)
+// setObj(10)
+// console.log('test-changed: ', obj.val)
