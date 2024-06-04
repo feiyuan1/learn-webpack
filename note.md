@@ -1082,22 +1082,3 @@ webpack config plugins option，通过 new 创建插件实例并插入数组
 
 同步导入会被转为 -> __webpack_require__
 异步导入 -> __webpack_require__.e
-
-# webpack 的竞争者们
-
-## Vite
-
-区别：
-- 编译模块：
-  - webpack 会事先编译好所有模块
-  - vite 按需编译，执行到引入语句时，发出请求，开始编译
-- 缓存
-  - webpack 会将编译结果存储到磁盘上（指的是构建，若是本地开发 HMR 存到内存中）
-  - vite 不会缓存
-
-## Bun
-到目前为止，github star 数量高于 webpack，说明大家还挺支持的，使用率呢？
-
-- 不支持 windows
-- 支持运行时？但是 webpack 不支持么？为啥要用它？
-- 不支持 Vue、Angular 
