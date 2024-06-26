@@ -14,6 +14,16 @@ module.exports = merge(common(NODE_ENV.DEV), {
   // devtool: 'eval',
   // devtool: 'inline-source-map',
   devtool: false,
+  devServer: {
+    proxy: {
+      '/api': {target: 'http://localhost:3000', 
+      pathRewrite: {'^/api': ''}
+      },
+      '/baidu': {target: 'https://www.baidu.com', 
+      pathRewrite: {'^/baidu': ''}
+      }
+    }
+  },
   optimization: {
     usedExports: true,
     // minimize: true,
