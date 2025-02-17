@@ -110,16 +110,27 @@ const generatorTestCases = function () {
 const myExpress = function () {
   const middlewares = [];
 
+  // const compose = function (middlewares) {
+  //   return function (ctx) {
+  //     const dispatch = function (index) {
+  //       const middleware = middlewares[index];
+  //       middleware(ctx, () => {
+  //         return dispatch(index + 1);
+  //       });
+  //     };
+  //     return dispatch(0);
+  //   };
+  // };
+
   const compose = function (middlewares) {
-    return function (ctx) {
-      const dispatch = function (index) {
-        const middleware = middlewares[index];
-        middleware(ctx, () => {
-          return dispatch(index + 1);
-        });
-      };
-      return dispatch(0);
-    };
+    const ctx = {};
+    return middlewares
+      .slice()
+      .reverse()
+      .reduce(
+        (dispatch, middleware) => () => middleware(ctx, dispatch),
+        () => {}
+      );
   };
 
   const use = function (m) {
@@ -220,22 +231,33 @@ function koaWithAsync() {
     middlewares.push(m);
   };
 
+  // const compose = async function (middlewares) {
+  //   return async function (ctx) {
+  //     const dispatch = async function (i) {
+  //       const next = async function () {
+  //         await dispatch(i + 1);
+  //       };
+
+  //       if (i >= middlewares.length) {
+  //         return;
+  //       }
+  //       const m = middlewares[i];
+  //       await m(ctx, next);
+  //     };
+
+  //     dispatch(0);
+  //   };
+  // };
+
   const compose = async function (middlewares) {
-    return async function (ctx) {
-      const dispatch = async function (i) {
-        const next = async function () {
-          await dispatch(i + 1);
-        };
-
-        if (i >= middlewares.length) {
-          return;
-        }
-        const m = middlewares[i];
-        await m(ctx, next);
-      };
-
-      dispatch(0);
-    };
+    const ctx = {};
+    return middlewares
+      .slice()
+      .reverse()
+      .reduce(
+        (dispatch, middleware) => async () => await middleware(ctx, dispatch),
+        () => {}
+      );
   };
 
   const start = async function () {
@@ -281,8 +303,8 @@ function koaWithGen() {
 }
 
 const testKoa = function () {
-  const app = koaWithGen();
-  // const app = koaWithAsync();
+  // const app = koaWithGen();
+  const app = koaWithAsync();
   // const app = koaWithPromise();
   app.use(async function (ctx, next) {
     console.log("m1");

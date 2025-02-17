@@ -1,6 +1,8 @@
+/**
+ * redux-middleware
+ */
 console.log("----start-redux-middleware-----");
 
-// redux-middleware
 const middleware1 = (storeApi) => (next) => (action) => {
   console.log("redux-1-start");
   next(action);
@@ -8,7 +10,7 @@ const middleware1 = (storeApi) => (next) => (action) => {
 };
 
 const middleware2 = (storeApi) => (next) => (action) => {
-  console.log("redux-2-start");
+  console.log("redux-2-start", action);
   next(action);
   console.log("redux-2-end");
 };
@@ -23,25 +25,7 @@ const reduxThunkMiddleware = (storeApi) => (next) => (action) => {
   console.log("thunk-end");
 };
 
-const applyMiddleware = (middlewares) => {
-  const storeApi = { dispatch: function () {} };
-  let dispatch = storeApi.dispatch;
-
-  middlewares
-    .slice()
-    .reverse()
-    .forEach((middleware) => {
-      dispatch = middleware(storeApi)(dispatch);
-    });
-
-  return { dispatch };
-};
-
-const { dispatch } = applyMiddleware([
-  reduxThunkMiddleware,
-  middleware1,
-  middleware2,
-]);
+let applyMiddleware;
 
 const getData = (params) => (dispatch, state) => {
   new Promise((resovle) => {
@@ -54,7 +38,53 @@ const getData = (params) => (dispatch, state) => {
   });
 };
 
-// async logic
-dispatch(getData({}));
-// sync logic
-dispatch();
+const testCases = () => {
+  const { dispatch } = applyMiddleware([
+    reduxThunkMiddleware,
+    middleware1,
+    middleware2,
+  ]);
+
+  // async logic
+  dispatch(getData({}));
+  // sync logic
+  // dispatch();
+};
+
+const testApplyMiddlewareWithScope = () => {
+  const applyMiddlewareWithReduce = (middlewares) => {
+    const storeApi = { dispatch: function () {} };
+
+    const dispatch = middlewares
+      .slice()
+      .reverse()
+      .reduce((dispatch, middleware) => {
+        dispatch = middleware(storeApi)(dispatch);
+      }, storeApi.dispatch);
+
+    return { dispatch };
+  };
+  applyMiddleware = applyMiddlewareWithReduce;
+  testCases();
+};
+
+const testApplyMiddlewareWithReduce = () => {
+  const applyMiddlewareWithScope = (middlewares) => {
+    const storeApi = { dispatch: function () {} };
+    let dispatch = storeApi.dispatch;
+
+    middlewares
+      .slice()
+      .reverse()
+      .forEach((middleware) => {
+        dispatch = middleware(storeApi)(dispatch);
+      });
+
+    return { dispatch };
+  };
+  applyMiddleware = applyMiddlewareWithScope;
+  testCases();
+};
+
+// testApplyMiddlewareWithScope();
+testApplyMiddlewareWithReduce();
